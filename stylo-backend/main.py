@@ -10,8 +10,6 @@ from app.api.visual_search import router as visual_search_router
 from app.core.config import get_settings
 from app.core.database import engine, Base
 from app.core.mongo import get_trend_collection
-from app.core.embedding_store import build_product_embeddings
-
 settings = get_settings()
 
 
@@ -24,10 +22,6 @@ async def lifespan(app: FastAPI):
     col = await get_trend_collection()
     if await col.count_documents({}) == 0:
         await col.insert_many(SEED_ITEMS)
-
-    # Pre-compute CLIP embeddings for visual search (using the local SEED_ITEMS pool for simplicity)
-    # In a full-scale app, this would load from a vector DB like pgvector or Milvus.
-    build_product_embeddings(SEED_ITEMS)
 
     yield
 

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
-from app.core.embedding_store import find_similar_products
-from app.services.visual_search import encode_image, preprocess_image
+from app.api.feed import SEED_ITEMS
+from app.services.visual_search import gemini_visual_search
 
 router = APIRouter(prefix="/api/search", tags=["visual-search"])
 
@@ -22,7 +22,7 @@ async def visual_search(file: UploadFile = File(...)) -> dict:
     """
     Upload an image → get top-5 fashion products matching its visual style.
 
-    Powered by OpenCV (preprocessing) + CLIP ViT-B/32 (embeddings).
+    Powered by Google Gemini 2.0 Flash Multimodal API.
     """
     # ── Validate file ──────────────────────────────────────────────────────────
     allowed_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
@@ -40,10 +40,10 @@ async def visual_search(file: UploadFile = File(...)) -> dict:
             detail="Image too large. Maximum size is 10 MB.",
         )
 
-    # ── Preprocess + encode ───────────────────────────────────────────────────
+    # ── Gemini Cloud Vision ───────────────────────────────────────────────────
     try:
-        pil_image = preprocess_image(image_bytes)
-        image_embedding = encode_image(pil_image)
+        # returns [{"id": "...", "similarity_score": 0.95}, ...]
+        raw_matches = gemini_visual_search(image_bytes, SEED_ITEMS)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -52,11 +52,21 @@ async def visual_search(file: UploadFile = File(...)) -> dict:
             detail=f"Visual search processing failed: {e}",
         )
 
-    # ── Find similar products ─────────────────────────────────────────────────
-    matches = find_similar_products(image_embedding, top_k=5)
+    # ── Hydrate results ───────────────────────────────────────────────────────
+    matches = []
+    catalog_map = {item["_id"]: item for item in SEED_ITEMS}
+    for match in raw_matches:
+        item_id = str(match["id"])
+        if item_id in catalog_map:
+            # Copy product details to avoid mutating the seed data
+            product = dict(catalog_map[item_id])
+            # For the frontend we use "id" instead of "_id"
+            product["id"] = product.pop("_id")
+            product["similarity"] = match.get("similarity_score", 0)
+            matches.append(product)
 
     return {
         "matches": matches,
         "count": len(matches),
-        "model": "CLIP ViT-B/32",
+        "model": "gemini-2.0-flash",
     }
