@@ -1,18 +1,25 @@
 // Mock trending fashion data — will be replaced by scraper/API in Module 4
+// Unified feed item — supports both legacy MongoDB schema and live Google Shopping (SerpApi) schema
 export interface FeedItem {
   id: string;
   title: string;
-  brand: string;
-  category: string;
-  tags: string[];
-  price: number;
-  currency: string;
-  imageGradient: string; // CSS gradient used as placeholder
-  imageEmoji: string;
-  likes: number;
-  saves: number;
-  trending: boolean;
-  heat: "🔥" | "✦" | "💜" | "🌿";
+  // Legacy (MongoDB) fields — optional since new SerpApi data won't have them
+  brand?: string;
+  category?: string;
+  tags?: string[];
+  price: number | string;
+  currency?: string;
+  imageGradient?: string;
+  imageEmoji?: string;
+  likes?: number;
+  saves?: number;
+  trending?: boolean;
+  heat?: "🔥" | "✦" | "💜" | "🌿";
+  // New (SerpApi / Google Shopping) fields
+  thumbnail?: string;    // Real product image URL
+  source?: string;       // Store name e.g. "Zara USA"
+  link?: string;         // Direct buy link
+  similarity?: number;   // Confidence score (visual search)
 }
 
 export type FeedCategory =

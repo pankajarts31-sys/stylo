@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # Must be first so os.environ has all keys from .env before any service imports
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,24 +8,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.stylist import router as stylist_router
 from app.api.auth import router as auth_router
-from app.api.feed import router as feed_router, SEED_ITEMS
+from app.api.feed import router as feed_router
 from app.api.visual_search import router as visual_search_router
+from app.api.search import router as search_router
 from app.core.config import get_settings
 from app.core.database import engine, Base
-from app.core.mongo import get_trend_collection
-settings = get_settings()
 
+settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # PostgreSQL / SQLite tables
     Base.metadata.create_all(bind=engine)
-
-    # Auto-seed MongoDB trends on startup if empty
-    col = await get_trend_collection()
-    if await col.count_documents({}) == 0:
-        await col.insert_many(SEED_ITEMS)
-
     yield
 
 
@@ -45,6 +42,7 @@ app.include_router(auth_router)
 app.include_router(stylist_router)
 app.include_router(feed_router)
 app.include_router(visual_search_router)
+app.include_router(search_router)
 
 
 @app.get("/health")

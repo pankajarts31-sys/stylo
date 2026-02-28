@@ -14,10 +14,10 @@ from google.genai import types
 from app.core.config import settings
 
 
-def gemini_visual_search(image_bytes: bytes, catalog: list[dict]) -> list[dict]:
+def generate_search_query_from_image(image_bytes: bytes) -> str:
     """
-    Pass the user's image and the JSON catalog to Gemini 2.0 Flash.
-    Returns a parsed list of up to 5 best-match products.
+    Pass the user's image to Gemini 2.5 Flash and ask it to generate 
+    a highly specific e-commerce search query.
     """
     if not settings.gemini_api_key:
         raise ValueError("GEMINI_API_KEY is not configured.")
@@ -26,35 +26,20 @@ def gemini_visual_search(image_bytes: bytes, catalog: list[dict]) -> list[dict]:
         api_key=settings.gemini_api_key,
         http_options={'api_version': 'v1alpha'}
     )
-    
-    # Strip unnecessary large data from catalog to keep prompt small
-    lean_catalog = []
-    for item in catalog:
-        lean_catalog.append({
-            "id": item["_id"],
-            "title": item["title"],
-            "brand": item["brand"],
-            "category": item["category"],
-            "tags": item.get("tags", []),
-        })
 
-    prompt = f"""
-    You are an expert AI fashion stylist. 
-    I am providing an image of a fashion item (or outfit) and a JSON catalog of available products.
-    Analyze the visual style, color, texture, and aesthetic of the uploaded image.
-    Find the top 5 products from the catalog that visually match or would pair perfectly with the uploaded image.
+    prompt = """
+    You are an expert AI fashion stylist and personal shopper.
+    Look at the fashion item or outfit in this image.
+    Write a highly specific, concise e-commerce search query (max 5-8 words) that I can type into Google Shopping to find this exact item or something extremely similar.
+    Focus on: gender, color, material, style, and specific item type.
+    Example outputs:
+    - Men's black leather double rider moto jacket
+    - Women's floral midi wrap summer dress
+    - Unisex oversized washed grey graphic t-shirt
     
-    Here is the catalog:
-    {json.dumps(lean_catalog)}
-    
-    CRITICAL: You MUST return exactly 5 items. Even if the matches aren't perfect, choose the 5 closest options.
-    Return EXACTLY a JSON array of objects. Do not include any markdown formatting or explanation.
-    Each object must have two keys:
-    1. "id" (string): the exact _id from the catalog
-    2. "similarity_score" (float): a confidence score between 0.0 and 1.0
+    Return ONLY the raw search query string. Do not include any quotes, markdown formatting, or explanation.
     """
 
-    # We send the raw bytes to Gemini using the standard part structure
     docs = [
         types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
         prompt,
@@ -64,16 +49,12 @@ def gemini_visual_search(image_bytes: bytes, catalog: list[dict]) -> list[dict]:
         model="gemini-2.5-flash",
         contents=docs,
         config=types.GenerateContentConfig(
-            temperature=0.1,  # low temperature for stable JSON output
-            response_mime_type="application/json",
+            temperature=0.2, 
         ),
     )
 
     try:
-        print("GEMINI RESPONSE:", response.text)
-        results = json.loads(response.text)
-        # Sort just in case it didn't return them in order
-        results = sorted(results, key=lambda x: x.get("similarity_score", 0), reverse=True)
-        return results[:5]
+        query = response.text.strip().replace('"', '').replace('\n', ' ')
+        return query
     except Exception as e:
-        raise ValueError(f"Failed to parse Gemini output: {e}. Output was: {response.text}")
+        raise ValueError(f"Failed to generate query from Gemini: {e}")

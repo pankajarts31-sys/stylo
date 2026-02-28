@@ -122,7 +122,7 @@ export default function FeedContent() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
             <TrendingUp size={22} style={{ color: "#9b59b6" }} />
             <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#9b59b6", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              Live Trends · MongoDB
+              Live Trends · Google Shopping
             </span>
           </div>
           <h1 className="font-display" style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", color: "var(--fg-primary)", lineHeight: 1.2 }}>
@@ -188,7 +188,7 @@ export default function FeedContent() {
         {/* ── Status / count ── */}
         <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {loading ? (
-            <><RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> Loading from MongoDB…</>
+            <><RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> Loading from Google Shopping…</>
           ) : error ? (
             <span style={{ color: "#e74c3c" }}>⚠ {error}</span>
           ) : (

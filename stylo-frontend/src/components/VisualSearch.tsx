@@ -196,7 +196,7 @@ export default function VisualSearch({ onClose }: VisualSearchProps) {
             {loading ? (
               <div style={{ padding: "3rem 0", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", color: "var(--fg-secondary)" }}>
                 <Loader2 size={32} className="text-purple" style={{ animation: "spin 1s linear infinite" }} />
-                <p>Analyzing style and finding matches using CLIP AI...</p>
+                <p>Analyzing style with Gemini AI and searching Google Shopping...</p>
                 <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
               </div>
             ) : results.length > 0 ? (
