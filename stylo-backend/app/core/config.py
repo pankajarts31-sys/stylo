@@ -9,7 +9,7 @@ class Settings(BaseSettings):
 
     # App
     app_env: str = "development"
-    allowed_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    allowed_origins: list[str] = ["*"]
 
     # Database (SQLite locally, swap for postgresql:// on Railway)
     database_url: str = "sqlite:///./stylo.db"
