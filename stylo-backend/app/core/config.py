@@ -9,7 +9,13 @@ class Settings(BaseSettings):
 
     # App
     app_env: str = "development"
-    allowed_origins: list[str] = ["*"]
+    allowed_origins: list[str] = [
+        "https://stylo-zeta.vercel.app",
+        "https://*.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "*"
+    ]
 
     # Database (SQLite locally, swap for postgresql:// on Railway)
     database_url: str = "sqlite:///./stylo.db"
