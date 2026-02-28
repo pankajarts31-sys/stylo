@@ -1,5 +1,8 @@
-from dotenv import load_dotenv
-load_dotenv()  # Must be first so os.environ has all keys from .env before any service imports
+import os as _os
+if _os.path.exists(".env"):
+    from dotenv import load_dotenv
+    load_dotenv()  # Local dev only — Railway injects env vars natively
+
 
 from contextlib import asynccontextmanager
 
