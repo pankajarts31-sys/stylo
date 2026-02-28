@@ -1,0 +1,8 @@
+[tool.fastapi]
+entrypoint = "main:app"
+
+[project]
+name = "stylo-backend"
+version = "0.1.0"
+description = "STYLO Virtual Fashion Universe — FastAPI Backend"
+requires-python = ">=3.11"

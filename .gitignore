@@ -1,0 +1,28 @@
+# Node
+node_modules/
+.next/
+out/
+build/
+npm-debug.log
+yarn-error.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv/
+stylo.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Custom
+test_dress.jpg
