@@ -19,10 +19,15 @@ from app.core.database import engine, Base
 
 settings = get_settings()
 
+import traceback
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # PostgreSQL / SQLite tables
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"CRITICAL BOOT ERROR: DB Connection Failed. The app will start but DB queries will fail.\n{traceback.format_exc()}")
     yield
 
 
