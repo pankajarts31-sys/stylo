@@ -6,4 +6,4 @@ echo "PORT=${PORT:-8000}"
 echo "DATABASE_URL set: $([ -n "$DATABASE_URL" ] && echo YES || echo NO)"
 echo "SERPAPI_KEY set: $([ -n "$SERPAPI_KEY" ] && echo YES || echo NO)"
 
-exec python -m uvicorn main:app --host 0.0.0.0 --port 8000
+exec python -m uvicorn main:app --host 0.0.0.0 --port "${PORT:-8000}"
