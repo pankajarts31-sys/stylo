@@ -16,4 +16,4 @@ except Exception as boot_exc:
     
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
     def crash_handler(path: str):
-        return PlainTextResponse(f"STARTUP CRASH:\n\n{error_trace}\n\nEnvironment Variables:\n{os.environ}", status_code=500)
+        return PlainTextResponse(f"STARTUP CRASH:\n\n{error_trace}\n\nEnvironment Variables:\n{os.environ}", status_code=200)
