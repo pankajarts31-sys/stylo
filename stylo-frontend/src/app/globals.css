@@ -1,0 +1,222 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,500&display=swap");
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────────── */
+:root {
+  /* Pastel palette */
+  --pastel-lavender: #c9b8f5;
+  --pastel-pink: #f5b8d8;
+  --pastel-peach: #f5d0b8;
+  --pastel-mint: #b8f5e8;
+  --pastel-sky: #b8d8f5;
+
+  /* Depth */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-shadow: 0 8px 32px rgba(140, 100, 220, 0.12);
+
+  /* Text */
+  --fg-primary: #2d1b69;
+  --fg-secondary: #6b5b95;
+  --fg-muted: #a89bc2;
+
+  /* Background gradient */
+  --bg-gradient: linear-gradient(
+    135deg,
+    #f0e6ff 0%,
+    #fce4f5 25%,
+    #ffe8f0 50%,
+    #e8f4ff 75%,
+    #e4fff8 100%
+  );
+}
+
+/* ─── Reset & Base ───────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--fg-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Glassmorphism Utility ──────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-dark {
+  background: rgba(45, 27, 105, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(201, 184, 245, 0.3);
+  box-shadow: 0 8px 32px rgba(140, 100, 220, 0.15);
+}
+
+/* ─── Typography ─────────────────────────────────────────────── */
+.font-display {
+  font-family: "Playfair Display", serif;
+}
+
+/* ─── Gradient Text ──────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #9b59b6, #e91e8c, #f39c12);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, #c9b8f5, #f5b8d8);
+  color: var(--fg-primary);
+  font-weight: 600;
+  border: none;
+  border-radius: 50px;
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(201, 184, 245, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(201, 184, 245, 0.55);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--fg-secondary);
+  font-weight: 500;
+  border: 1.5px solid rgba(201, 184, 245, 0.6);
+  border-radius: 50px;
+  padding: 0.65rem 1.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-ghost:hover {
+  background: rgba(201, 184, 245, 0.2);
+  border-color: var(--pastel-lavender);
+}
+
+/* ─── Input Fields ───────────────────────────────────────────── */
+.input-glass {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(201, 184, 245, 0.4);
+  border-radius: 14px;
+  padding: 0.85rem 1.1rem;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  color: var(--fg-primary);
+  outline: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.input-glass::placeholder {
+  color: var(--fg-muted);
+}
+
+.input-glass:focus {
+  border-color: var(--pastel-lavender);
+  box-shadow: 0 0 0 3px rgba(201, 184, 245, 0.25);
+}
+
+/* ─── Floating orbs (decorative) ─────────────────────────────── */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #c9b8f5, transparent 70%);
+  top: -100px;
+  left: -100px;
+  animation: float-orb 8s ease-in-out infinite;
+}
+
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #f5b8d8, transparent 70%);
+  bottom: -80px;
+  right: -80px;
+  animation: float-orb 10s ease-in-out infinite reverse;
+}
+
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #b8d8f5, transparent 70%);
+  top: 50%;
+  left: 60%;
+  animation: float-orb 12s ease-in-out infinite 3s;
+}
+
+@keyframes float-orb {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 30px) scale(0.95);
+  }
+}
+
+/* ─── Fade-in animation ──────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* ─── Page wrapper ───────────────────────────────────────────── */
+.page-wrapper {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
