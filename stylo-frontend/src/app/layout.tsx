@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import { AuthProvider } from "@/context/AuthContext";
+import { Providers } from "@/components/Providers";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -33,12 +33,12 @@ export default function RootLayout({
         <div className="orb orb-2" aria-hidden="true" />
         <div className="orb orb-3" aria-hidden="true" />
 
-        <AuthProvider>
+        <Providers>
           <Navbar />
           <div className="page-wrapper" style={{ paddingTop: "68px" }}>
             {children}
           </div>
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

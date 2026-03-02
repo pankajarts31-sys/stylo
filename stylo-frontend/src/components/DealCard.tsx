@@ -150,9 +150,9 @@ export default function DealCard({ item, index }: DealCardProps) {
               {bestPrice.storeLogo} Best price at {bestPrice.store}
             </div>
             <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--fg-primary)" }}>
-              ${bestPrice.price}
+              ₹{bestPrice.price.toLocaleString("en-IN")}
               <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--fg-muted)", marginLeft: "0.4rem" }}>
-                vs ${highestPrice} elsewhere
+                vs ₹{highestPrice.toLocaleString("en-IN")} elsewhere
               </span>
             </div>
           </div>
@@ -252,7 +252,7 @@ export default function DealCard({ item, index }: DealCardProps) {
 
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                       <span style={{ fontSize: "0.97rem", fontWeight: 800, color: i === 0 ? "#27ae60" : "var(--fg-primary)" }}>
-                        ${store.price}
+                        ₹{store.price.toLocaleString("en-IN")}
                       </span>
                       {store.inStock && (
                         <a

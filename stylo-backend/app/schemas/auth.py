@@ -37,5 +37,9 @@ class UserOut(BaseModel):
     email: str
     full_name: str
     avatar_url: str | None = None
+    theme_preference: str = "women"
 
     model_config = {"from_attributes": True}
+
+class ThemeUpdateRequest(BaseModel):
+    theme_preference: str

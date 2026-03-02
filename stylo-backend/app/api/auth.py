@@ -20,7 +20,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserOut
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserOut, ThemeUpdateRequest
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -65,4 +65,18 @@ def login(body: LoginRequest, db: DbDep) -> TokenResponse:
 @router.get("/me", response_model=UserOut)
 def me(current_user: CurrentUser) -> User:
     """Return the currently authenticated user."""
+    return current_user
+
+
+@router.patch("/theme", response_model=UserOut)
+def update_theme(body: ThemeUpdateRequest, current_user: CurrentUser, db: DbDep) -> User:
+    """Update the user's theme preference."""
+    if body.theme_preference not in ("men", "women"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid theme preference. Must be 'men' or 'women'.",
+        )
+    current_user.theme_preference = body.theme_preference
+    db.commit()
+    db.refresh(current_user)
     return current_user

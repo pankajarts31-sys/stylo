@@ -21,8 +21,9 @@ def search_fashion_items(query: str, max_results: int = 15) -> list[dict]:
         "engine": "google_shopping",
         "q": query,
         "api_key": api_key,
-        "hl": "en",
-        "gl": "us",
+        "hl": "hi",
+        "gl": "in",
+        "currency": "INR",
     }
 
     try:

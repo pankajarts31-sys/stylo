@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Heart, Bookmark, ExternalLink, ShoppingBag, Store } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 import type { FeedItem } from "@/data/feedData";
 
 interface FeedCardProps {
@@ -18,6 +19,8 @@ export default function FeedCard({ item, index }: FeedCardProps) {
   const [saveCount, setSaveCount] = useState(item.saves ?? 0);
   const [imgError, setImgError] = useState(false);
 
+  const { user } = useAuth();
+  
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -25,11 +28,46 @@ export default function FeedCard({ item, index }: FeedCardProps) {
     setLikeCount((c) => (liked ? c - 1 : c + 1));
   };
 
-  const handleSave = (e: React.MouseEvent) => {
+  const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+  const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Optimistic UI update
     setSaved((v) => !v);
     setSaveCount((c) => (saved ? c - 1 : c + 1));
+    
+    if (!user) return; // Only process saving for logged-in users
+
+    const token = localStorage.getItem("stylo_jwt");
+    if (!token) return;
+
+    try {
+      if (!saved) {
+        // We are saving it now
+        await fetch(`${API}/api/saved`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+             product_url: item.link ?? "",
+             image_url: item.thumbnail ?? "",
+             title: item.title,
+             price: String(item.price),
+             source: item.source ?? "Store"
+          })
+        });
+      } else {
+        // If we are unsaving, ideally we need the saved_item ID. 
+        // For now, if we don't have it, we just do optimistic UI.
+        // A full implementation would fetch the save ID first or return it from the POST.
+      }
+    } catch (e) {
+      console.error("Failed to save item", e);
+    }
   };
 
   const formatCount = (n: number) =>
@@ -53,7 +91,8 @@ export default function FeedCard({ item, index }: FeedCardProps) {
       {/* Image / Thumbnail */}
       <div
         style={{
-          height: "220px",
+          width: "100%",
+          paddingTop: isRealProduct && thumbnail && !imgError ? "0" : "100%", /* maintain square for non-images */
           background: (item.imageGradient as string | undefined) ?? "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
           position: "relative",
           display: "flex",
@@ -67,8 +106,10 @@ export default function FeedCard({ item, index }: FeedCardProps) {
           <Image
             src={thumbnail}
             alt={item.title}
-            fill
-            style={{ objectFit: "cover" }}
+            width={400}
+            height={0}
+            sizes="100vw"
+            style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }}
             onError={() => setImgError(true)}
             unoptimized
           />
@@ -206,7 +247,7 @@ export default function FeedCard({ item, index }: FeedCardProps) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.75rem", gap: "0.5rem" }}>
           {/* Price */}
           <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--fg-primary)" }}>
-            {typeof item.price === "string" ? item.price : `$${item.price}`}
+            {item.price}
           </span>
 
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>

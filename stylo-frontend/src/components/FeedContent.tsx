@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrendingUp, ArrowUpDown, Sparkles, RefreshCw, Camera } from "lucide-react";
+// @ts-ignore
+import Masonry from "react-masonry-css";
 import FeedCard from "@/components/FeedCard";
 import FilterBar from "@/components/FilterBar";
-import SearchBar from "@/components/SearchBar";
-import VisualSearch from "@/components/VisualSearch";
+import PremiumSearchBar from "@/components/PremiumSearchBar";
 import type { FeedItem, FeedCategory } from "@/data/feedData";
 import { CATEGORIES } from "@/data/feedData";
 
@@ -27,7 +28,6 @@ export default function FeedContent() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("trending");
   const [sortOpen, setSortOpen] = useState(false);
-  const [visualSearchOpen, setVisualSearchOpen] = useState(false);
   const [items, setItems] = useState<FeedItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -133,6 +133,16 @@ export default function FeedContent() {
           </p>
         </motion.div>
 
+        {/* ── Premium Search Bar ── */}
+        <motion.div
+           initial={{ opacity: 0, y: 15 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.5, delay: 0.1 }}
+           style={{ marginBottom: "2rem" }}
+        >
+          <PremiumSearchBar onSearch={(query) => setSearch(query)} />
+        </motion.div>
+
         {/* ── Controls ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -140,20 +150,9 @@ export default function FeedContent() {
           transition={{ duration: 0.4, delay: 0.1 }}
           style={{ display: "flex", gap: "1rem", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", justifyContent: "space-between" }}
         >
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center", flex: 1, minWidth: "280px" }}>
-            <SearchBar value={search} onChange={setSearch} />
-          </div>
+          <div style={{ flex: 1 }}></div>
 
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => setVisualSearchOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: "0.45rem", padding: "0.6rem 1.1rem", borderRadius: "50px", background: "linear-gradient(135deg, rgba(201,184,245,0.3), rgba(245,184,216,0.3))", backdropFilter: "blur(12px)", border: "1px solid rgba(201,184,245,0.6)", cursor: "pointer", color: "#9b59b6", fontSize: "0.85rem", fontWeight: 600, whiteSpace: "nowrap" }}
-            >
-              <Camera size={16} /> Search by image
-            </motion.button>
-
-            <div style={{ position: "relative" }}>
               <motion.button
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 onClick={() => setSortOpen((o) => !o)}
@@ -177,7 +176,6 @@ export default function FeedContent() {
                 )}
               </AnimatePresence>
             </div>
-          </div>
         </motion.div>
 
         {/* ── Category filter ── */}
@@ -203,11 +201,20 @@ export default function FeedContent() {
             <p style={{ fontSize: "1.05rem" }}>No looks match your search.</p>
           </motion.div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
+          <Masonry
+            breakpointCols={{
+              default: 4,
+              1100: 3,
+              768: 2,
+              500: 1
+            }}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
             <AnimatePresence mode="popLayout">
               {items.map((item, i) => <FeedCard key={item.id} item={item} index={i % PAGE_SIZE} />)}
             </AnimatePresence>
-          </div>
+          </Masonry>
         )}
 
         {/* ── Infinite scroll sentinel ── */}
@@ -226,11 +233,6 @@ export default function FeedContent() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {visualSearchOpen && (
-          <VisualSearch onClose={() => setVisualSearchOpen(false)} />
-        )}
-      </AnimatePresence>
     </main>
   );
 }

@@ -17,6 +17,7 @@ export interface User {
   full_name: string;
   email: string;
   avatar_url?: string | null;
+  theme_preference: "men" | "women";
 }
 
 interface AuthState {

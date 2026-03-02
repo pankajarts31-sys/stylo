@@ -14,6 +14,7 @@ from app.api.auth import router as auth_router
 from app.api.feed import router as feed_router
 from app.api.visual_search import router as visual_search_router
 from app.api.search import router as search_router
+from app.api.saved import router as saved_router
 from app.core.config import get_settings
 from app.core.database import engine, Base
 
@@ -25,6 +26,7 @@ import traceback
 async def lifespan(app: FastAPI):
     # PostgreSQL / SQLite tables
     try:
+        from app.models.saved_item import SavedItem
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"CRITICAL BOOT ERROR: DB Connection Failed. The app will start but DB queries will fail.\n{traceback.format_exc()}")
@@ -51,6 +53,7 @@ app.include_router(stylist_router)
 app.include_router(feed_router)
 app.include_router(visual_search_router)
 app.include_router(search_router)
+app.include_router(saved_router)
 
 
 @app.get("/health")

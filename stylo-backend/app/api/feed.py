@@ -10,9 +10,10 @@ from app.services.shopping import search_fashion_items
 
 router = APIRouter(prefix="/api/feed", tags=["feed"])
 
-# Simple in-memory cache to prevent burning API credits for the homepage feed
-_feed_cache = []
-_feed_cache_time = 0
+import re
+
+# Simple in-memory cache keyed by (category, search)
+_feed_cache = {}
 CACHE_TTL = 3600  # 1 hour
 
 @router.get("")
@@ -24,32 +25,50 @@ async def get_feed(
     limit: int = Query(20, ge=1, le=50),
 ) -> dict:
     """Return live trending items from Google Shopping."""
-    global _feed_cache, _feed_cache_time
+    global _feed_cache
     now = time.time()
     
-    # Refresh cache if empty or expired
-    if not _feed_cache or (now - _feed_cache_time) > CACHE_TTL:
-        print("Fetching fresh trending feed from SerpApi...")
-        # A broad query to get a good mix of fashion items
-        _feed_cache = search_fashion_items("latest trending fashion outfits men women", max_results=20)
-        _feed_cache_time = now
-
-    items = list(_feed_cache)
-
-    # Filter
-    if category != "All":
-        items = [item for item in items if category.lower() in item["title"].lower()]
+    cache_key = (category, search)
+    cached_data = _feed_cache.get(cache_key)
+    
+    # Refresh cache if empty or expired for this specific query
+    if not cached_data or (now - cached_data["time"]) > CACHE_TTL:
+        print(f"Fetching fresh feed for {cache_key}...")
         
-    if search.strip():
-        s = search.lower()
-        items = [item for item in items if s in item["title"].lower() or s in item["source"].lower()]
+        # Build a highly relevant search query for Google Shopping
+        query_parts = ["latest trending"]
+        if category != "All":
+            query_parts.append(category)
+        else:
+            query_parts.append("fashion styles men women")
+            
+        if search.strip():
+            query_parts.append(search.strip())
+            
+        q = " ".join(query_parts)
+        
+        # Fetch up to 20 results from SerpApi
+        fetched_items = search_fashion_items(q, max_results=20)
+        _feed_cache[cache_key] = {"time": now, "items": fetched_items}
+        cached_data = _feed_cache[cache_key]
 
-    # Sort (mocked for live data since SerpApi ranking is best)
+    items = list(cached_data["items"])
+
+    def parse_price(p_str):
+        if not p_str:
+            return 0.0
+        # Remove all characters except digits and the decimal point
+        cleaned = re.sub(r'[^\d.]', '', str(p_str))
+        try:
+            return float(cleaned) if cleaned else 0.0
+        except ValueError:
+            return 0.0
+
+    # Sort
     if sort == "price-asc":
-        # Extract numbers from string "$12.99"
-        items.sort(key=lambda x: float(x["price"].replace("$", "").replace(",", "")) if "$" in x["price"] else 9999)
+        items.sort(key=lambda x: parse_price(x.get("price", "")) or 999999)
     elif sort == "price-desc":
-        items.sort(key=lambda x: float(x["price"].replace("$", "").replace(",", "")) if "$" in x["price"] else 0, reverse=True)
+        items.sort(key=lambda x: parse_price(x.get("price", "")), reverse=True)
 
     # Pagination
     total = len(items)

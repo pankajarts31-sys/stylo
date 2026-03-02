@@ -6,24 +6,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import dynamic from "next/dynamic";
+
+const ClientThemeToggle = dynamic(() => import("./ClientThemeToggle"), { ssr: false });
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/stylist", label: "AI Stylist" },
   { href: "/feed", label: "Trending" },
   { href: "/deals", label: "Deals" },
+  { href: "/saved", label: "Saved" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
       <header
         id="main-navbar"
-        className="glass fixed top-0 left-0 right-0 z-50"
+        className="glass fixed top-0 left-0 right-0 z-50 h-[68px]"
         style={{
           borderRadius: "0 0 20px 20px",
           borderTop: "none",
@@ -35,7 +40,7 @@ export default function Navbar() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            height: "68px",
+            height: "100%",
             maxWidth: "1200px",
             margin: "0 auto",
           }}
@@ -57,14 +62,14 @@ export default function Navbar() {
               <Sparkles
                 size={26}
                 style={{
-                  color: "#9b59b6",
-                  filter: "drop-shadow(0 0 6px rgba(155,89,182,0.5))",
+                  color: "var(--accent-2)",
+                  filter: "drop-shadow(0 0 6px var(--accent-1))",
                 }}
               />
             </motion.div>
             <span
               className="font-display gradient-text"
-              style={{ fontSize: "1.5rem", letterSpacing: "0.05em" }}
+              style={{ fontSize: "1.5rem", letterSpacing: "0.05em", background: "var(--btn-gradient)", WebkitBackgroundClip: "text" }}
             >
               STYLO
             </span>
@@ -86,11 +91,11 @@ export default function Navbar() {
                     borderRadius: "50px",
                     fontSize: "0.9rem",
                     fontWeight: active ? 600 : 500,
-                    color: active ? "#9b59b6" : "var(--fg-secondary)",
-                    background: active ? "rgba(201, 184, 245, 0.2)" : "transparent",
+                    color: active ? "var(--accent-2)" : "var(--fg-secondary)",
+                    background: active ? "rgba(255, 255, 255, 0.15)" : "transparent",
                     textDecoration: "none",
                     transition: "all 0.2s ease",
-                    border: active ? "1px solid rgba(201,184,245,0.4)" : "1px solid transparent",
+                    border: active ? "1px solid var(--glass-border)" : "1px solid transparent",
                   }}
                 >
                   {link.label}
@@ -99,67 +104,73 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Auth Actions */}
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            {user ? (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    padding: "0.4rem 1rem",
-                    borderRadius: "50px",
-                    background: "rgba(201,184,245,0.15)",
-                    border: "1px solid rgba(201,184,245,0.3)",
-                  }}
-                >
-                  <User size={15} style={{ color: "#9b59b6" }} />
-                  <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--fg-secondary)" }}>
-                    {user.full_name}
-                  </span>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={logout}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.4rem",
-                    background: "transparent",
-                    border: "1.5px solid rgba(245,184,216,0.5)",
-                    borderRadius: "50px",
-                    padding: "0.45rem 1rem",
-                    cursor: "pointer",
-                    color: "var(--fg-secondary)",
-                    fontSize: "0.85rem",
-                    fontWeight: 500,
-                  }}
-                >
-                  <LogOut size={14} />
-                  Sign out
-                </motion.button>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login">
-                  <button className="btn-ghost" style={{ fontSize: "0.875rem", padding: "0.5rem 1.4rem" }}>
-                    Log in
-                  </button>
-                </Link>
-                <Link href="/auth/signup">
-                  <motion.button
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    className="btn-primary"
-                    style={{ fontSize: "0.875rem", padding: "0.5rem 1.4rem" }}
+          {/* User Actions & Theme Toggle */}
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+            
+            {/* Men / Women Theme Toggle */}
+            <ClientThemeToggle />
+
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+              {user ? (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      padding: "0.4rem 1rem",
+                      borderRadius: "50px",
+                      background: "rgba(255, 255, 255, 0.15)",
+                      border: "1px solid var(--glass-border)",
+                    }}
                   >
-                    Get Started
+                    <User size={15} style={{ color: "var(--accent-2)" }} />
+                    <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--fg-secondary)" }}>
+                      {user.full_name}
+                    </span>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={logout}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      background: "transparent",
+                      border: "1.5px solid var(--accent-2)",
+                      borderRadius: "50px",
+                      padding: "0.45rem 1rem",
+                      cursor: "pointer",
+                      color: "var(--fg-secondary)",
+                      fontSize: "0.85rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <LogOut size={14} />
+                    Sign out
                   </motion.button>
-                </Link>
-              </>
-            )}
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login">
+                    <button className="btn-ghost" style={{ fontSize: "0.875rem", padding: "0.5rem 1.4rem" }}>
+                      Log in
+                    </button>
+                  </Link>
+                  <Link href="/auth/signup">
+                    <motion.button
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                      className="btn-primary"
+                      style={{ fontSize: "0.875rem", padding: "0.5rem 1.4rem" }}
+                    >
+                      Get Started
+                    </motion.button>
+                  </Link>
+                </>
+              )}
+            </div>
 
             {/* Mobile menu toggle */}
             <button
