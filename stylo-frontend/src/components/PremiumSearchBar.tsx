@@ -31,7 +31,9 @@ export default function PremiumSearchBar({ onSearch, style }: PremiumSearchBarPr
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (value.trim()) onSearch(value.trim());
+    if (value.trim()) {
+       onSearch(value.trim());
+    } 
   };
 
   const handleClear = () => {
@@ -77,7 +79,7 @@ export default function PremiumSearchBar({ onSearch, style }: PremiumSearchBarPr
 
       if (finalTranscript) {
         setValue(finalTranscript);
-        onSearch(finalTranscript);
+        onSearch(finalTranscript); // instantly update Feed or Deals logic
         setIsListening(false);
       } else {
         setValue(interimTranscript);

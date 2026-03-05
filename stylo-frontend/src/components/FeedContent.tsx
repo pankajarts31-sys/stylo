@@ -54,8 +54,8 @@ export default function FeedContent() {
     try {
       const skip = (p - 1) * PAGE_SIZE;
       const params = new URLSearchParams({
-        category,
-        search,
+        category: category !== "All" ? category : "",
+        search: search.trim() ? search : "fashion", // Fallback query
         sort: backendSort(sort),
         skip: String(skip),
         limit: String(PAGE_SIZE),
@@ -63,15 +63,17 @@ export default function FeedContent() {
       const res = await fetch(`${API}/api/feed?${params}`);
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const data = await res.json();
+      
+      const resItems = data.items || data.deals || data.shopping_results || [];
 
       // Map backend _id → id for FeedCard compatibility
-      const mapped: FeedItem[] = data.items.map((item: Record<string, unknown>) => ({
+      const mapped: FeedItem[] = resItems.map((item: Record<string, unknown>) => ({
         ...item,
-        id: item._id ?? item.id,
+        id: item._id ?? item.id ?? Math.random().toString(36).substring(7),
       })) as FeedItem[];
 
       setItems((prev) => (reset ? mapped : [...prev, ...mapped]));
-      setTotal(data.total);
+      setTotal(data.total || data.results_count || mapped.length || 0);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load feed");
     } finally {

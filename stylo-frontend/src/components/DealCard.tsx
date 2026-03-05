@@ -2,11 +2,38 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, ChevronDown, ChevronUp, ExternalLink, Truck, Package } from "lucide-react";
-import type { DealItem } from "@/data/dealsData";
+import { Star, ChevronDown, ChevronUp, ExternalLink, Truck } from "lucide-react";
+
+interface StoreInfo {
+  store: string;
+  storeLogo: string;
+  price: number;
+  currency: string;
+  inStock: boolean;
+  shippingDays: number;
+  url: string;
+  deal?: string | null;
+}
+
+interface DealItemShape {
+  id: string;
+  title: string;
+  brand: string;
+  category: string;
+  description?: string;
+  imageGradient?: string;
+  imageEmoji?: string;
+  thumbnail?: string;
+  rating: number;
+  reviewCount: number;
+  isHotDeal?: boolean;
+  savingsPercent?: number;
+  tags?: string[];
+  stores: StoreInfo[];
+}
 
 interface DealCardProps {
-  item: DealItem;
+  item: DealItemShape;
   index: number;
 }
 
@@ -27,10 +54,13 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function DealCard({ item, index }: DealCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const sortedStores = [...item.stores].sort((a, b) => a.price - b.price);
   const bestPrice = sortedStores[0];
-  const highestPrice = sortedStores[sortedStores.length - 1].price;
+  const highestPrice = sortedStores[sortedStores.length - 1]?.price || bestPrice?.price || 0;
+
+  const showThumbnail = item.thumbnail && !imgError;
 
   return (
     <motion.article
@@ -44,15 +74,26 @@ export default function DealCard({ item, index }: DealCardProps) {
       <div
         style={{
           height: "180px",
-          background: item.imageGradient,
+          background: item.imageGradient || "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: "3.5rem",
           position: "relative",
+          overflow: "hidden",
         }}
       >
-        <span role="img" aria-label={item.title}>{item.imageEmoji}</span>
+        {showThumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.thumbnail}
+            alt={item.title}
+            onError={() => setImgError(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <span role="img" aria-label={item.title}>{item.imageEmoji || "🛍️"}</span>
+        )}
 
         {item.isHotDeal && (
           <div
@@ -73,7 +114,7 @@ export default function DealCard({ item, index }: DealCardProps) {
           </div>
         )}
 
-        {item.savingsPercent && (
+        {(item.savingsPercent ?? 0) > 0 && (
           <div
             style={{
               position: "absolute",
@@ -119,64 +160,70 @@ export default function DealCard({ item, index }: DealCardProps) {
           {item.title}
         </h3>
 
-        <p style={{ fontSize: "0.825rem", color: "var(--fg-secondary)", lineHeight: 1.6, marginBottom: "0.75rem" }}>
-          {item.description}
-        </p>
+        {item.description && (
+          <p style={{ fontSize: "0.825rem", color: "var(--fg-secondary)", lineHeight: 1.6, marginBottom: "0.75rem" }}>
+            {item.description}
+          </p>
+        )}
 
         {/* Rating */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.9rem" }}>
           <StarRating rating={item.rating} />
           <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#f39c12" }}>{item.rating}</span>
           <span style={{ fontSize: "0.78rem", color: "var(--fg-muted)" }}>
-            ({item.reviewCount.toLocaleString()} reviews)
+            ({(item.reviewCount || 0).toLocaleString()} reviews)
           </span>
         </div>
 
         {/* Best price highlight */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(39,174,96,0.1), rgba(39,174,96,0.05))",
-            border: "1.5px solid rgba(39,174,96,0.25)",
-            borderRadius: "14px",
-            padding: "0.75rem 1rem",
-            marginBottom: "0.9rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <div style={{ fontSize: "0.72rem", color: "#27ae60", fontWeight: 600, marginBottom: "0.15rem" }}>
-              {bestPrice.storeLogo} Best price at {bestPrice.store}
-            </div>
-            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--fg-primary)" }}>
-              ₹{bestPrice.price.toLocaleString("en-IN")}
-              <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--fg-muted)", marginLeft: "0.4rem" }}>
-                vs ₹{highestPrice.toLocaleString("en-IN")} elsewhere
-              </span>
-            </div>
-          </div>
-          <a
-            href={bestPrice.url}
+        {bestPrice && (
+          <div
             style={{
+              background: "linear-gradient(135deg, rgba(39,174,96,0.1), rgba(39,174,96,0.05))",
+              border: "1.5px solid rgba(39,174,96,0.25)",
+              borderRadius: "14px",
+              padding: "0.75rem 1rem",
+              marginBottom: "0.9rem",
               display: "flex",
               alignItems: "center",
-              gap: "0.35rem",
-              background: "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
-              color: "#2d1b69",
-              border: "none",
-              borderRadius: "50px",
-              padding: "0.5rem 1.1rem",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              textDecoration: "none",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
+              justifyContent: "space-between",
             }}
           >
-            Buy now <ExternalLink size={12} />
-          </a>
-        </div>
+            <div>
+              <div style={{ fontSize: "0.72rem", color: "#27ae60", fontWeight: 600, marginBottom: "0.15rem" }}>
+                {bestPrice.storeLogo} Best price at {bestPrice.store}
+              </div>
+              <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--fg-primary)" }}>
+                ₹{bestPrice.price.toLocaleString("en-IN")}
+                <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--fg-muted)", marginLeft: "0.4rem" }}>
+                  vs ₹{highestPrice.toLocaleString("en-IN")} elsewhere
+                </span>
+              </div>
+            </div>
+            <a
+              href={bestPrice.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                background: "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
+                color: "#2d1b69",
+                border: "none",
+                borderRadius: "50px",
+                padding: "0.5rem 1.1rem",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                textDecoration: "none",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Buy now <ExternalLink size={12} />
+            </a>
+          </div>
+        )}
 
         {/* Expand/collapse store comparison */}
         <button
@@ -215,7 +262,7 @@ export default function DealCard({ item, index }: DealCardProps) {
               <div style={{ paddingTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {sortedStores.map((store, i) => (
                   <div
-                    key={store.store}
+                    key={`${store.store}-${i}`}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -254,9 +301,11 @@ export default function DealCard({ item, index }: DealCardProps) {
                       <span style={{ fontSize: "0.97rem", fontWeight: 800, color: i === 0 ? "#27ae60" : "var(--fg-primary)" }}>
                         ₹{store.price.toLocaleString("en-IN")}
                       </span>
-                      {store.inStock && (
+                      {store.inStock && store.url !== "#" && (
                         <a
                           href={store.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           style={{
                             fontSize: "0.72rem",
                             color: "#9b59b6",

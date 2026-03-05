@@ -1,24 +1,28 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ArrowUpDown, Zap, TrendingDown } from "lucide-react";
+import { ShoppingBag, ArrowUpDown, Zap, TrendingDown, RefreshCw } from "lucide-react";
+// @ts-ignore
+import Masonry from "react-masonry-css";
 import DealCard from "@/components/DealCard";
-import SearchBar from "@/components/SearchBar";
-import DEALS_DATA, { DEAL_CATEGORIES, type DealCategory } from "@/data/dealsData";
+import PremiumSearchBar from "@/components/PremiumSearchBar";
+import { DEAL_CATEGORIES, type DealCategory } from "@/data/dealsData";
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type SortOption = "savings" | "price-asc" | "price-desc" | "rating" | "popular";
 const SORT_LABELS: Record<SortOption, string> = {
   savings: "💰 Best Savings",
-  "price-asc": "$ Lowest First",
-  "price-desc": "$ Highest First",
+  "price-asc": "₹ Lowest First",
+  "price-desc": "₹ Highest First",
   rating: "⭐ Top Rated",
   popular: "🔥 Most Reviewed",
 };
 
 const STAT_CARDS = [
-  { icon: "🛍️", value: "6", label: "Products tracked" },
-  { icon: "🏪", value: "20+", label: "Stores compared" },
+  { icon: "🛍️", value: "Live", label: "Product search" },
+  { icon: "🏪", value: "8+", label: "Indian stores" },
   { icon: "💰", value: "Up to 40%", label: "Max savings found" },
   { icon: "⚡", value: "Real-time", label: "Price updates" },
 ];
@@ -28,28 +32,49 @@ export default function DealsContent() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("savings");
   const [sortOpen, setSortOpen] = useState(false);
+  const [dealsData, setDealsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch deals from API whenever search/category changes
+  useEffect(() => {
+    const fetchDeals = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const query = search.trim() || "trending fashion";
+        const catParam = category !== "All" ? `&category=${encodeURIComponent(category)}` : "";
+        const res = await fetch(`${API}/api/deals?q=${encodeURIComponent(query)}${catParam}`);
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `API error ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (data && data.success) {
+          setDealsData(data.deals || []);
+        } else {
+          setDealsData([]);
+        }
+      } catch (e) {
+        console.error("Failed fetching live deals", e);
+        setError(e instanceof Error ? e.message : "Failed to load deals");
+        setDealsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const debounce = setTimeout(() => fetchDeals(), 500);
+    return () => clearTimeout(debounce);
+  }, [search, category]);
+
+  // Client-side sort
   const filtered = useMemo(() => {
-    let items = DEALS_DATA;
-
-    if (category !== "All") {
-      items = items.filter((i) => i.category === category);
-    }
-
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      items = items.filter(
-        (i) =>
-          i.title.toLowerCase().includes(q) ||
-          i.brand.toLowerCase().includes(q) ||
-          i.tags.some((t) => t.toLowerCase().includes(q)) ||
-          i.category.toLowerCase().includes(q)
-      );
-    }
-
-    return [...items].sort((a, b) => {
-      const aBest = Math.min(...a.stores.map((s) => s.price));
-      const bBest = Math.min(...b.stores.map((s) => s.price));
+    return [...dealsData].sort((a, b) => {
+      const aBest = Math.min(...(a.stores || []).map((s: any) => s.price));
+      const bBest = Math.min(...(b.stores || []).map((s: any) => s.price));
       switch (sort) {
         case "savings":
           return (b.savingsPercent ?? 0) - (a.savingsPercent ?? 0);
@@ -58,14 +83,14 @@ export default function DealsContent() {
         case "price-desc":
           return bBest - aBest;
         case "rating":
-          return b.rating - a.rating;
+          return (b.rating ?? 0) - (a.rating ?? 0);
         case "popular":
-          return b.reviewCount - a.reviewCount;
+          return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
         default:
           return 0;
       }
     });
-  }, [category, search, sort]);
+  }, [dealsData, sort]);
 
   return (
     <main style={{ minHeight: "calc(100vh - 68px)", padding: "0 1.5rem 5rem" }}>
@@ -87,10 +112,10 @@ export default function DealsContent() {
           <h1 className="font-display" style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", color: "var(--fg-primary)", lineHeight: 1.2 }}>
             Best{" "}
             <span className="gradient-text">Deals</span>{" "}
-            Across 20+ Stores
+            Across Indian Stores
           </h1>
           <p style={{ color: "var(--fg-secondary)", marginTop: "0.5rem", fontSize: "0.95rem" }}>
-            Real-time price comparison so you always pay the least for the looks you love ✦
+            Real-time price comparison across Amazon, Flipkart, Myntra, Meesho & more ✦
           </p>
         </motion.div>
 
@@ -122,6 +147,16 @@ export default function DealsContent() {
           ))}
         </motion.div>
 
+        {/* ── Premium Search Bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          style={{ marginBottom: "1.5rem" }}
+        >
+          <PremiumSearchBar onSearch={(q) => setSearch(q)} />
+        </motion.div>
+
         {/* ── Controls ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -129,7 +164,7 @@ export default function DealsContent() {
           transition={{ duration: 0.4, delay: 0.15 }}
           style={{ display: "flex", gap: "1rem", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap" }}
         >
-          <SearchBar value={search} onChange={setSearch} />
+          <div style={{ flex: 1 }}></div>
 
           {/* Sort */}
           <div style={{ position: "relative" }}>
@@ -241,41 +276,59 @@ export default function DealsContent() {
 
         {/* ── Result count ── */}
         <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Zap size={13} style={{ color: "#27ae60" }} />
-          {filtered.length === 0
-            ? "No deals found"
-            : `${filtered.length} deal${filtered.length !== 1 ? "s" : ""} tracked`}
-          {search && ` for "${search}"`}
+          {loading ? (
+            <><RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} /> Searching across Indian stores...</>
+          ) : error ? (
+            <span style={{ color: "#e74c3c" }}>⚠ {error}</span>
+          ) : (
+            <>
+              <Zap size={13} style={{ color: "#27ae60" }} />
+              {filtered.length === 0
+                ? "No deals found"
+                : `${filtered.length} deal${filtered.length !== 1 ? "s" : ""} tracked`}
+              {search && ` for "${search}"`}
+            </>
+          )}
         </div>
 
         {/* ── Deals Grid ── */}
-        {filtered.length === 0 ? (
+        {!loading && filtered.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={{ textAlign: "center", paddingTop: "4rem", color: "var(--fg-muted)" }}
           >
             <ShoppingBag size={40} style={{ color: "rgba(201,184,245,0.5)", marginBottom: "1rem" }} />
-            <p style={{ fontSize: "1.05rem" }}>No deals match your search.</p>
+            <p style={{ fontSize: "1.05rem" }}>
+              {error ? "Could not fetch deals. Check your backend server." : "No deals match your search."}
+            </p>
           </motion.div>
+        ) : loading ? (
+          <div style={{ textAlign: "center", paddingTop: "4rem" }}>
+            <RefreshCw size={32} style={{ color: "#9b59b6", animation: "spin 1s linear infinite" }} />
+            <p style={{ color: "var(--fg-muted)", marginTop: "1rem" }}>Finding best prices...</p>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-              gap: "1.5rem",
+          <Masonry
+            breakpointCols={{
+              default: 3,
+              1100: 2,
+              700: 1,
             }}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
           >
             {filtered.map((item, i) => (
               <DealCard key={item.id} item={item} index={i} />
             ))}
-          </div>
+          </Masonry>
         )}
 
         {/* ── Footer note ── */}
         {filtered.length > 0 && (
           <p style={{ textAlign: "center", marginTop: "3rem", fontSize: "0.78rem", color: "var(--fg-muted)" }}>
-            ✦ Prices are updated periodically. Always verify on the retailer's site before purchasing.
+            ✦ Prices are updated periodically. Always verify on the retailer&apos;s site before purchasing.
           </p>
         )}
       </div>

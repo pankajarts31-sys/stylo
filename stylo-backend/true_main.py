@@ -15,6 +15,7 @@ from app.api.feed import router as feed_router
 from app.api.visual_search import router as visual_search_router
 from app.api.search import router as search_router
 from app.api.saved import router as saved_router
+from app.api.deals import router as deals_router
 from app.core.config import get_settings
 from app.core.database import engine, Base
 
@@ -54,6 +55,7 @@ app.include_router(feed_router)
 app.include_router(visual_search_router)
 app.include_router(search_router)
 app.include_router(saved_router)
+app.include_router(deals_router)
 
 
 @app.get("/health")
