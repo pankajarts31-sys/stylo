@@ -3,13 +3,40 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, ArrowUpDown, Zap, TrendingDown, RefreshCw } from "lucide-react";
-// @ts-ignore
 import Masonry from "react-masonry-css";
 import DealCard from "@/components/DealCard";
 import PremiumSearchBar from "@/components/PremiumSearchBar";
 import { DEAL_CATEGORIES, type DealCategory } from "@/data/dealsData";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+interface DealStore {
+  store: string;
+  storeLogo: string;
+  price: number;
+  currency: string;
+  inStock: boolean;
+  shippingDays: number;
+  url: string;
+  deal: string | null;
+}
+
+interface Deal {
+  id: string;
+  title: string;
+  brand: string;
+  category: string;
+  description: string;
+  imageGradient: string;
+  imageEmoji: string;
+  thumbnail: string;
+  rating: number;
+  reviewCount: number;
+  isHotDeal: boolean;
+  savingsPercent: number;
+  tags: string[];
+  stores: DealStore[];
+}
 
 type SortOption = "savings" | "price-asc" | "price-desc" | "rating" | "popular";
 const SORT_LABELS: Record<SortOption, string> = {
@@ -22,7 +49,7 @@ const SORT_LABELS: Record<SortOption, string> = {
 
 const STAT_CARDS = [
   { icon: "🛍️", value: "Live", label: "Product search" },
-  { icon: "🏪", value: "8+", label: "Indian stores" },
+  { icon: "🏪", value: "20+", label: "Indian stores" },
   { icon: "💰", value: "Up to 40%", label: "Max savings found" },
   { icon: "⚡", value: "Real-time", label: "Price updates" },
 ];
@@ -32,7 +59,7 @@ export default function DealsContent() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("savings");
   const [sortOpen, setSortOpen] = useState(false);
-  const [dealsData, setDealsData] = useState<any[]>([]);
+  const [dealsData, setDealsData] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,8 +100,8 @@ export default function DealsContent() {
   // Client-side sort
   const filtered = useMemo(() => {
     return [...dealsData].sort((a, b) => {
-      const aBest = Math.min(...(a.stores || []).map((s: any) => s.price));
-      const bBest = Math.min(...(b.stores || []).map((s: any) => s.price));
+      const aBest = Math.min(...(a.stores || []).map((s: DealStore) => s.price));
+      const bBest = Math.min(...(b.stores || []).map((s: DealStore) => s.price));
       switch (sort) {
         case "savings":
           return (b.savingsPercent ?? 0) - (a.savingsPercent ?? 0);

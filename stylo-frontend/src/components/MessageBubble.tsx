@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import type { Message } from "./ChatWindow";
 import { Sparkles } from "lucide-react";
 
@@ -58,7 +57,7 @@ export default function MessageBubble({ msg }: MessageBubbleProps) {
           boxShadow: isUser
             ? "0 4px 16px rgba(201,184,245,0.35)"
             : "0 4px 16px rgba(140,100,220,0.08)",
-          color: isUser ? "#2d1b69" : "#2d1b69",
+          color: "#2d1b69",
           fontSize: "0.92rem",
           lineHeight: 1.65,
           whiteSpace: "pre-wrap",

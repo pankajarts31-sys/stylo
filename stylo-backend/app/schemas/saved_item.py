@@ -1,5 +1,5 @@
 """Saved Items Pydantic schemas."""
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from datetime import datetime
 
 class SavedItemCreate(BaseModel):

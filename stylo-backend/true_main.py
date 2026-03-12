@@ -4,6 +4,7 @@ if _os.path.exists(".env"):
     load_dotenv()  # Local dev only — Railway injects env vars natively
 
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -19,18 +20,21 @@ from app.api.deals import router as deals_router
 from app.core.config import get_settings
 from app.core.database import engine, Base
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
-import traceback
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # PostgreSQL / SQLite tables
     try:
-        from app.models.saved_item import SavedItem
+        from app.models.saved_item import SavedItem  # noqa: F401
         Base.metadata.create_all(bind=engine)
-    except Exception as e:
-        print(f"CRITICAL BOOT ERROR: DB Connection Failed. The app will start but DB queries will fail.\n{traceback.format_exc()}")
+    except Exception:
+        logger.critical(
+            "DB Connection Failed. The app will start but DB queries will fail.",
+            exc_info=True,
+        )
     yield
 
 

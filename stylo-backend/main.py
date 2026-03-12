@@ -1,5 +1,4 @@
 import traceback
-import os
 
 try:
     # Attempt to load the real application
@@ -11,11 +10,14 @@ except Exception as boot_exc:
     error_trace = traceback.format_exc()
     from fastapi import FastAPI
     from fastapi.responses import PlainTextResponse
-    
+
     app = FastAPI(title="STYLO API CRASH DIAGNOSTIC")
-    
+
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
     def crash_handler(path: str):
-        return PlainTextResponse(f"STARTUP CRASH:\n\n{error_trace}\n\nEnvironment Variables:\n{os.environ}", status_code=200)
+        return PlainTextResponse(
+            f"STARTUP CRASH:\n\n{error_trace}",
+            status_code=200,
+        )
 
 

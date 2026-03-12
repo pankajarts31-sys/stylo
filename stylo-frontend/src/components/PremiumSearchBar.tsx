@@ -5,6 +5,17 @@ import { Search, Mic, Camera, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import VisualSearch from "./VisualSearch";
 
+interface SpeechRecognitionResultEntry { transcript: string }
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionResultEntry;
+}
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: { length: number; [index: number]: SpeechRecognitionResult };
+}
+interface SpeechRecognitionErrorEvent extends Event { error: string }
+
 interface PremiumSearchBarProps {
   onSearch: (query: string) => void;
   style?: React.CSSProperties;
@@ -54,7 +65,7 @@ export default function PremiumSearchBar({ onSearch, style }: PremiumSearchBarPr
       return;
     }
 
-    // @ts-ignore - Speech API types are not standard yet
+    // @ts-expect-error — Speech Recognition is not in standard TS lib
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
@@ -65,7 +76,7 @@ export default function PremiumSearchBar({ onSearch, style }: PremiumSearchBarPr
       setIsListening(true);
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interimTranscript = '';
       let finalTranscript = '';
 
@@ -86,7 +97,7 @@ export default function PremiumSearchBar({ onSearch, style }: PremiumSearchBarPr
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error("Speech recognition error", event.error);
       setIsListening(false);
     };
@@ -97,7 +108,7 @@ export default function PremiumSearchBar({ onSearch, style }: PremiumSearchBarPr
 
     try {
       recognition.start();
-    } catch (e) {
+    } catch {
       setIsListening(false);
     }
   };

@@ -2,8 +2,19 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, Sparkles, RotateCcw } from "lucide-react";
+import { Send, Sparkles, RotateCcw, Mic, Camera } from "lucide-react";
 import MessageBubble from "./MessageBubble";
+import VisualSearch from "./VisualSearch";
+
+interface SpeechRecognitionResultEntry { transcript: string }
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionResultEntry;
+}
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: { length: number; [index: number]: SpeechRecognitionResult };
+}
 
 export interface Message {
   id: string;
@@ -35,6 +46,8 @@ export default function ChatWindow() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [visualSearchOpen, setVisualSearchOpen] = useState(false);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -117,7 +130,7 @@ export default function ChatWindow() {
                   )
                 );
               }
-            } catch (e) {
+            } catch {
               // ignore parse errors on partial chunks
             }
           }
@@ -164,7 +177,35 @@ export default function ChatWindow() {
     setInput("");
   };
 
+  const toggleVoiceSearch = () => {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+    if (isListening) { setIsListening(false); return; }
+    // @ts-expect-error — Speech Recognition is not in standard TS lib
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SR();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = "en-IN";
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = ""; let final = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
+      }
+      if (final) { setInput(final); setIsListening(false); }
+      else setInput(interim);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    try { recognition.start(); } catch { setIsListening(false); }
+  };
+
   return (
+    <>
     <div
       style={{
         display: "flex",
@@ -218,7 +259,7 @@ export default function ChatWindow() {
                   animation: isStreaming ? "pulse 1s ease-in-out infinite" : "none",
                 }}
               />
-              {isStreaming ? "Styling…" : "Online · Gemini 1.5"}
+              {isStreaming ? "Styling…" : "Online · Gemini 2.5"}
             </div>
           </div>
         </div>
@@ -336,6 +377,46 @@ export default function ChatWindow() {
             opacity: isStreaming ? 0.6 : 1,
           }}
         />
+
+        {/* Mic */}
+        <motion.button
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          type="button"
+          onClick={toggleVoiceSearch}
+          title={isListening ? "Stop listening" : "Voice input"}
+          style={{
+            background: isListening ? "rgba(233,30,140,0.12)" : "transparent",
+            border: "none", cursor: "pointer",
+            color: isListening ? "#e91e8c" : "var(--fg-muted)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0.55rem", borderRadius: "50%", flexShrink: 0, position: "relative",
+          }}
+        >
+          {isListening && (
+            <motion.div
+              initial={{ opacity: 0.5, scale: 1 }} animate={{ opacity: 0, scale: 1.6 }}
+              transition={{ repeat: Infinity, duration: 1.2 }}
+              style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(233,30,140,0.25)" }}
+            />
+          )}
+          <Mic size={17} />
+        </motion.button>
+
+        {/* Camera / Visual Search */}
+        <motion.button
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          type="button"
+          onClick={() => setVisualSearchOpen(true)}
+          title="Search by image"
+          style={{
+            background: "rgba(201,184,245,0.15)", border: "none", cursor: "pointer",
+            color: "#9b59b6", display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0.55rem", borderRadius: "50%", flexShrink: 0,
+          }}
+        >
+          <Camera size={17} />
+        </motion.button>
+
         <motion.button
           id="chat-send-btn"
           whileHover={{ scale: 1.08 }}
@@ -377,5 +458,9 @@ export default function ChatWindow() {
         }
       `}</style>
     </div>
+    <AnimatePresence>
+      {visualSearchOpen && <VisualSearch onClose={() => setVisualSearchOpen(false)} />}
+    </AnimatePresence>
+    </>
   );
 }

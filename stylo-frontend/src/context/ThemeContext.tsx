@@ -23,6 +23,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // 1. Prioritize user from DB if logged in
     if (user && user.theme_preference) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setThemeState(user.theme_preference);
       localStorage.setItem("stylo_theme", user.theme_preference);
     } 

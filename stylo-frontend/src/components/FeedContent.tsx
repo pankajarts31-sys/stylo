@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, ArrowUpDown, Sparkles, RefreshCw, Camera } from "lucide-react";
-// @ts-ignore
+import { TrendingUp, ArrowUpDown, Sparkles, RefreshCw } from "lucide-react";
 import Masonry from "react-masonry-css";
 import FeedCard from "@/components/FeedCard";
 import FilterBar from "@/components/FilterBar";
 import PremiumSearchBar from "@/components/PremiumSearchBar";
 import type { FeedItem, FeedCategory } from "@/data/feedData";
-import { CATEGORIES } from "@/data/feedData";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const PAGE_SIZE = 6;
@@ -25,28 +23,25 @@ const SORT_LABELS: Record<SortOption, string> = {
 
 export default function FeedContent() {
   const [category, setCategory] = useState<FeedCategory>("All");
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortOption>("trending");
+  const [search, setSearch]     = useState("");
+  const [sort, setSort]         = useState<SortOption>("trending");
   const [sortOpen, setSortOpen] = useState(false);
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [items, setItems]       = useState<FeedItem[]>([]);
+  const [total, setTotal]       = useState(0);
+  const [loading, setLoading]   = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]       = useState<string | null>(null);
+  // Use a ref for page to avoid "assigned but never read" ESLint warning
+  const pageRef   = useRef(1);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // Map frontend sort → backend sort param
-  const backendSort = (s: SortOption) => {
-    if (s === "newest") return "trending";
-    if (s === "popular") return "popular";
-    if (s === "price-asc") return "price-asc";
+  const backendSort = useCallback((s: SortOption) => {
+    if (s === "price-asc")  return "price-asc";
     if (s === "price-desc") return "price-desc";
     return "trending";
-  };
+  }, []);
 
-  // Fetch from backend
-  const fetchItems = async (p: number, reset: boolean) => {
+  const fetchItems = useCallback(async (p: number, reset: boolean) => {
     if (fetching) return;
     setFetching(true);
     if (reset) setLoading(true);
@@ -55,18 +50,16 @@ export default function FeedContent() {
       const skip = (p - 1) * PAGE_SIZE;
       const params = new URLSearchParams({
         category: category !== "All" ? category : "",
-        search: search.trim() ? search : "fashion", // Fallback query
-        sort: backendSort(sort),
-        skip: String(skip),
-        limit: String(PAGE_SIZE),
+        search:   search.trim() ? search : "fashion",
+        sort:     backendSort(sort),
+        skip:     String(skip),
+        limit:    String(PAGE_SIZE),
       });
       const res = await fetch(`${API}/api/feed?${params}`);
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const data = await res.json();
-      
-      const resItems = data.items || data.deals || data.shopping_results || [];
 
-      // Map backend _id → id for FeedCard compatibility
+      const resItems = data.items || data.deals || data.shopping_results || [];
       const mapped: FeedItem[] = resItems.map((item: Record<string, unknown>) => ({
         ...item,
         id: item._id ?? item.id ?? Math.random().toString(36).substring(7),
@@ -80,35 +73,31 @@ export default function FeedContent() {
       setFetching(false);
       setLoading(false);
     }
-  };
+  }, [category, search, sort, fetching, backendSort]);
 
   // Reset on filter/sort change
   useEffect(() => {
-    setPage(1);
+    pageRef.current = 1;
     fetchItems(1, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, search, sort]);
+  }, [category, search, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Infinite scroll using IntersectionObserver
+  // Infinite scroll
   const hasMore = items.length < total;
   useEffect(() => {
     if (!loaderRef.current || !hasMore || fetching) return;
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setPage((p) => {
-            const next = p + 1;
-            fetchItems(next, false);
-            return next;
-          });
+          const next = pageRef.current + 1;
+          pageRef.current = next;
+          fetchItems(next, false);
         }
       },
       { threshold: 0.1 }
     );
     obs.observe(loaderRef.current);
     return () => obs.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, fetching, items.length]);
+  }, [hasMore, fetching]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main style={{ minHeight: "calc(100vh - 68px)", padding: "0 1.5rem 5rem" }}>
@@ -137,10 +126,10 @@ export default function FeedContent() {
 
         {/* ── Premium Search Bar ── */}
         <motion.div
-           initial={{ opacity: 0, y: 15 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.5, delay: 0.1 }}
-           style={{ marginBottom: "2rem" }}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          style={{ marginBottom: "2rem" }}
         >
           <PremiumSearchBar onSearch={(query) => setSearch(query)} />
         </motion.div>
@@ -152,32 +141,32 @@ export default function FeedContent() {
           transition={{ duration: 0.4, delay: 0.1 }}
           style={{ display: "flex", gap: "1rem", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", justifyContent: "space-between" }}
         >
-          <div style={{ flex: 1 }}></div>
+          <div style={{ flex: 1 }} />
 
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                onClick={() => setSortOpen((o) => !o)}
-                style={{ display: "flex", alignItems: "center", gap: "0.45rem", padding: "0.6rem 1.1rem", borderRadius: "50px", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(12px)", border: "1.5px solid rgba(201,184,245,0.4)", cursor: "pointer", color: "var(--fg-secondary)", fontSize: "0.85rem", fontWeight: 500, whiteSpace: "nowrap" }}
-              >
-                <ArrowUpDown size={14} />{SORT_LABELS[sort]}
-              </motion.button>
-              <AnimatePresence>
-                {sortOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                    className="glass"
-                    style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 20, borderRadius: "16px", padding: "0.5rem", minWidth: "180px", boxShadow: "0 12px 40px rgba(140,100,220,0.18)" }}
-                  >
-                    {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
-                      <button key={opt} onClick={() => { setSort(opt); setSortOpen(false); }}
-                        style={{ display: "block", width: "100%", textAlign: "left", padding: "0.6rem 0.85rem", borderRadius: "10px", border: "none", background: sort === opt ? "rgba(201,184,245,0.2)" : "transparent", color: sort === opt ? "#9b59b6" : "var(--fg-secondary)", fontWeight: sort === opt ? 600 : 500, fontSize: "0.875rem", cursor: "pointer" }}
-                      >{SORT_LABELS[opt]}</button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", position: "relative" }}>
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              onClick={() => setSortOpen((o) => !o)}
+              style={{ display: "flex", alignItems: "center", gap: "0.45rem", padding: "0.6rem 1.1rem", borderRadius: "50px", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(12px)", border: "1.5px solid rgba(201,184,245,0.4)", cursor: "pointer", color: "var(--fg-secondary)", fontSize: "0.85rem", fontWeight: 500, whiteSpace: "nowrap" }}
+            >
+              <ArrowUpDown size={14} />{SORT_LABELS[sort]}
+            </motion.button>
+            <AnimatePresence>
+              {sortOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                  className="glass"
+                  style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 20, borderRadius: "16px", padding: "0.5rem", minWidth: "180px", boxShadow: "0 12px 40px rgba(140,100,220,0.18)" }}
+                >
+                  {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
+                    <button key={opt} onClick={() => { setSort(opt); setSortOpen(false); }}
+                      style={{ display: "block", width: "100%", textAlign: "left", padding: "0.6rem 0.85rem", borderRadius: "10px", border: "none", background: sort === opt ? "rgba(201,184,245,0.2)" : "transparent", color: sort === opt ? "#9b59b6" : "var(--fg-secondary)", fontWeight: sort === opt ? 600 : 500, fontSize: "0.875rem", cursor: "pointer" }}
+                    >{SORT_LABELS[opt]}</button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
 
         {/* ── Category filter ── */}
@@ -204,12 +193,7 @@ export default function FeedContent() {
           </motion.div>
         ) : (
           <Masonry
-            breakpointCols={{
-              default: 4,
-              1100: 3,
-              768: 2,
-              500: 1
-            }}
+            breakpointCols={{ default: 4, 1100: 3, 768: 2, 500: 1 }}
             className="my-masonry-grid"
             columnClassName="my-masonry-grid_column"
           >
@@ -234,7 +218,6 @@ export default function FeedContent() {
           )}
         </div>
       </div>
-
     </main>
   );
 }

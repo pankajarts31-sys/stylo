@@ -1,17 +1,29 @@
 """
-Visual search service powered by Gemini 2.0 Flash.
+Visual search service powered by Gemini 2.5 Flash.
 
-Sends the uploaded image along with the product catalog to the Gemini model
-and asks it to return the top 5 visual matches in JSON format.
+Sends the uploaded image to Gemini and asks it to generate
+a specific e-commerce search query for Google Shopping.
 """
 from __future__ import annotations
 
-import json
+import logging
 
 from google import genai
 from google.genai import types
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _detect_mime_type(image_bytes: bytes) -> str:
+    """Detect image MIME type from magic bytes."""
+    if image_bytes[:4] == b'\x89PNG':
+        return "image/png"
+    if image_bytes[:4] == b'RIFF' and image_bytes[8:12] == b'WEBP':
+        return "image/webp"
+    # Default to JPEG (covers SOI marker \xff\xd8 and unknowns)
+    return "image/jpeg"
 
 
 def generate_search_query_from_image(image_bytes: bytes) -> str:
@@ -41,7 +53,7 @@ def generate_search_query_from_image(image_bytes: bytes) -> str:
     """
 
     docs = [
-        types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+        types.Part.from_bytes(data=image_bytes, mime_type=_detect_mime_type(image_bytes)),
         prompt,
     ]
 

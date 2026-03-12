@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bookmark, Sparkles, ExternalLink, Trash2 } from "lucide-react";
-// @ts-ignore
 import Masonry from "react-masonry-css";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
@@ -27,7 +26,7 @@ export default function SavedPage() {
   const [items, setItems] = useState<SavedItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchSaved = async () => {
+  const fetchSaved = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -51,26 +50,34 @@ export default function SavedPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchSaved();
-  }, [user]);
+  }, [fetchSaved]);
 
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("stylo_jwt");
     if (!token) return;
-    
-    // Optimistic UI update
+
+    // Optimistic UI update — save snapshot for rollback
+    const snapshot = items.find((item) => item.id === id);
     setItems((current) => current.filter((item) => item.id !== id));
-    
+
     try {
-      await fetch(`${API}/api/saved/${id}`, {
+      const res = await fetch(`${API}/api/saved/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok && snapshot) {
+        // Rollback on API failure
+        setItems((current) => [...current, snapshot].sort((a, b) => a.id - b.id));
+      }
     } catch (e) {
       console.error("Failed to delete saved item", e);
+      if (snapshot) {
+        setItems((current) => [...current, snapshot].sort((a, b) => a.id - b.id));
+      }
     }
   };
 

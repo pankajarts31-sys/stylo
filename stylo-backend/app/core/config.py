@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,13 +16,12 @@ class Settings(BaseSettings):
         "https://*.vercel.app",
         "http://localhost:3000",
         "http://localhost:8000",
-        "*"
     ]
 
     # Database (SQLite locally, swap for postgresql:// on Railway)
     database_url: str = "sqlite:///./stylo.db"
 
-    # JWT
+    # JWT — must be overridden via JWT_SECRET_KEY env var in production
     jwt_secret_key: str = "change-me-in-production-use-a-long-random-string"
 
     # MongoDB (Phase 2)
@@ -30,7 +31,9 @@ class Settings(BaseSettings):
     serpapi_key: str = ""
 
 
+@lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
 
 settings = get_settings()

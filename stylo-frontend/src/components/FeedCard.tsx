@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Heart, Bookmark, ExternalLink, ShoppingBag, Store } from "lucide-react";
+import { Heart, Bookmark, ShoppingBag, Store } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
@@ -12,15 +12,19 @@ interface FeedCardProps {
   index: number;
 }
 
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 export default function FeedCard({ item, index }: FeedCardProps) {
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(item.likes ?? 0);
-  const [saveCount, setSaveCount] = useState(item.saves ?? 0);
-  const [imgError, setImgError] = useState(false);
+  const [liked, setLiked]             = useState(false);
+  const [saved, setSaved]             = useState(false);
+  const [savedItemId, setSavedItemId] = useState<number | null>(null);
+  const [likeCount, setLikeCount]     = useState(item.likes ?? 0);
+  const [imgError, setImgError]       = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [hovered, setHovered]         = useState(false);
 
   const { user } = useAuth();
-  
+
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -28,231 +32,196 @@ export default function FeedCard({ item, index }: FeedCardProps) {
     setLikeCount((c) => (liked ? c - 1 : c + 1));
   };
 
-  const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Optimistic UI update
-    setSaved((v) => !v);
-    setSaveCount((c) => (saved ? c - 1 : c + 1));
-    
-    if (!user) return; // Only process saving for logged-in users
+    if (saveLoading) return;
+
+    if (!user) {
+      setSaved((v) => !v);
+      return;
+    }
 
     const token = localStorage.getItem("stylo_jwt");
     if (!token) return;
 
+    setSaveLoading(true);
+    const wasAlreadySaved = saved;
+    setSaved(!wasAlreadySaved);
+
     try {
-      if (!saved) {
-        // We are saving it now
-        await fetch(`${API}/api/saved`, {
+      if (!wasAlreadySaved) {
+        const res = await fetch(`${API}/api/saved`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
-             product_url: item.link ?? "",
-             image_url: item.thumbnail ?? "",
-             title: item.title,
-             price: String(item.price),
-             source: item.source ?? "Store"
-          })
+            product_url: item.link ?? "",
+            image_url:   item.thumbnail ?? "",
+            title:       item.title,
+            price:       String(item.price ?? ""),
+            source:      item.source ?? "Store",
+          }),
         });
+        if (res.ok) {
+          const data = await res.json();
+          setSavedItemId(data.id ?? null);
+        } else {
+          setSaved(wasAlreadySaved);
+        }
       } else {
-        // If we are unsaving, ideally we need the saved_item ID. 
-        // For now, if we don't have it, we just do optimistic UI.
-        // A full implementation would fetch the save ID first or return it from the POST.
+        if (savedItemId !== null) {
+          const res = await fetch(`${API}/api/saved/${savedItemId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) setSavedItemId(null);
+          else setSaved(wasAlreadySaved);
+        }
       }
-    } catch (e) {
-      console.error("Failed to save item", e);
+    } catch {
+      setSaved(wasAlreadySaved);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   const formatCount = (n: number) =>
     n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 
-  // Real SerpApi items use `thumbnail`, `source`, and `link`. Legacy items use imageGradient/imageEmoji.
-  const isRealProduct = Boolean(item.thumbnail);
   const thumbnail = item.thumbnail;
-  const source = item.source;
-  const buyLink = item.link;
+  const source    = item.source;
+  const buyLink   = item.link;
+  const showImg   = Boolean(thumbnail) && !imgError;
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -6, boxShadow: "0 24px 60px rgba(140,100,220,0.22)" }}
-      className="glass"
-      style={{ borderRadius: "20px", overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
+      transition={{ duration: 0.35, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: "16px",
+        overflow: "hidden",
+        cursor: "pointer",
+        background: "white",
+        boxShadow: hovered
+          ? "0 16px 48px rgba(140,100,220,0.22)"
+          : "0 2px 10px rgba(0,0,0,0.07)",
+        transition: "box-shadow 0.25s ease",
+      }}
     >
-      {/* Image / Thumbnail */}
-      <div
-        style={{
-          width: "100%",
-          paddingTop: isRealProduct && thumbnail && !imgError ? "0" : "100%", /* maintain square for non-images */
-          background: (item.imageGradient as string | undefined) ?? "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "4rem",
-          overflow: "hidden",
-        }}
-      >
-        {isRealProduct && thumbnail && !imgError ? (
+      {/* ── Image ─────────────────────────────────── */}
+      <div style={{ position: "relative", lineHeight: 0, background: "white" }}>
+        {showImg ? (
           <Image
-            src={thumbnail}
+            src={thumbnail!}
             alt={item.title}
             width={400}
             height={0}
-            sizes="100vw"
-            style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }}
+            sizes="(max-width: 500px) 100vw, (max-width: 768px) 50vw, 25vw"
+            style={{ width: "100%", height: "auto", display: "block" }}
             onError={() => setImgError(true)}
             unoptimized
           />
         ) : (
-          <span role="img" aria-label={item.title}>
-            {(item.imageEmoji as string | undefined) ?? "🛍️"}
-          </span>
+          <div
+            style={{
+              paddingTop: "125%",
+              background:
+                (item.imageGradient as string | undefined) ??
+                "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
+              position: "relative",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "3.5rem",
+              }}
+            >
+              {(item.imageEmoji as string | undefined) ?? "🛍️"}
+            </span>
+          </div>
         )}
 
-        {/* Store badge (real products) */}
+        {/* Source badge */}
         {source && (
           <div
             style={{
               position: "absolute",
-              top: "12px",
-              left: "12px",
-              background: "rgba(255,255,255,0.9)",
+              top: 10,
+              left: 10,
+              background: "rgba(255,255,255,0.93)",
               backdropFilter: "blur(8px)",
               borderRadius: "50px",
-              padding: "0.25rem 0.65rem",
-              fontSize: "0.72rem",
+              padding: "0.18rem 0.55rem",
+              fontSize: "0.67rem",
               fontWeight: 700,
               color: "#2d1b69",
               display: "flex",
               alignItems: "center",
-              gap: "0.3rem",
-              maxWidth: "140px",
+              gap: "0.25rem",
+              maxWidth: 120,
               overflow: "hidden",
-              textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
             }}
           >
-            <Store size={11} />
-            {source}
+            <Store size={10} />{source}
           </div>
         )}
 
-        {/* Legacy heat badge */}
-        {!source && item.heat && (
-          <div
-            style={{
-              position: "absolute",
-              top: "12px",
-              left: "12px",
-              background: "rgba(255,255,255,0.85)",
-              backdropFilter: "blur(8px)",
-              borderRadius: "50px",
-              padding: "0.25rem 0.65rem",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              color: "var(--fg-primary)",
-            }}
-          >
-            {item.heat} {item.trending ? "Trending" : "Rising"}
-          </div>
-        )}
-
-        {/* Category tag (legacy) */}
-        {item.category && (
-          <div
-            style={{
-              position: "absolute",
-              top: "12px",
-              right: "12px",
-              background: "rgba(45,27,105,0.75)",
-              backdropFilter: "blur(8px)",
-              borderRadius: "50px",
-              padding: "0.25rem 0.7rem",
-              fontSize: "0.72rem",
-              fontWeight: 600,
-              color: "white",
-              letterSpacing: "0.03em",
-            }}
-          >
-            {item.category}
-          </div>
-        )}
-      </div>
-
-      {/* Card body */}
-      <div style={{ padding: "1rem 1.1rem 1.1rem", flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Brand / source */}
+        {/* Hover overlay */}
         <div
           style={{
-            fontSize: "0.73rem",
-            color: "var(--fg-muted)",
-            fontWeight: 500,
-            marginBottom: "0.2rem",
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.15)",
+            opacity: hovered ? 1 : 0,
+            transition: "opacity 0.2s ease",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            padding: "10px",
           }}
         >
-          {(item.brand as string | undefined) ?? source ?? "Shop"}
-        </div>
-
-        {/* Title */}
-        <h3
-          style={{
-            fontSize: "0.95rem",
-            fontWeight: 700,
-            color: "var(--fg-primary)",
-            lineHeight: 1.35,
-            marginBottom: "0.65rem",
-          }}
-        >
-          {item.title}
-        </h3>
-
-        {/* Tags (legacy) */}
-        {item.tags && item.tags.length > 0 && (
-          <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", marginBottom: "0.85rem" }}>
-            {item.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                style={{
-                  fontSize: "0.7rem",
-                  color: "#9b59b6",
-                  background: "rgba(201,184,245,0.2)",
-                  border: "1px solid rgba(201,184,245,0.4)",
-                  borderRadius: "50px",
-                  padding: "0.15rem 0.55rem",
-                  fontWeight: 500,
-                }}
-              >
-                #{tag}
-              </span>
-            ))}
+          {/* Top-right: Save */}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={handleSave}
+              disabled={saveLoading}
+              title={user ? (saved ? "Remove from saved" : "Save") : "Login to save"}
+              style={{
+                width: 36,
+                height: 36,
+                background: saved ? "#9b59b6" : "rgba(255,255,255,0.95)",
+                border: "none",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: saveLoading ? "wait" : "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                opacity: saveLoading ? 0.6 : 1,
+              }}
+            >
+              <Bookmark
+                size={15}
+                fill={saved ? "white" : "none"}
+                stroke={saved ? "white" : "#9b59b6"}
+              />
+            </motion.button>
           </div>
-        )}
 
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Footer: price + buttons */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.75rem", gap: "0.5rem" }}>
-          {/* Price */}
-          <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--fg-primary)" }}>
-            {item.price}
-          </span>
-
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            {/* Buy Now (real products) */}
-            {buyLink && (
+          {/* Bottom: Buy + Like */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            {buyLink ? (
               <a
                 href={buyLink}
                 target="_blank"
@@ -262,43 +231,95 @@ export default function FeedCard({ item, index }: FeedCardProps) {
                   display: "flex",
                   alignItems: "center",
                   gap: "0.3rem",
-                  padding: "0.4rem 0.85rem",
+                  padding: "0.38rem 0.85rem",
                   borderRadius: "50px",
-                  background: "linear-gradient(135deg, #9b59b6, #c9b8f5)",
-                  color: "white",
+                  background: "rgba(255,255,255,0.95)",
+                  color: "#9b59b6",
                   fontSize: "0.78rem",
                   fontWeight: 700,
                   textDecoration: "none",
-                  whiteSpace: "nowrap",
-                  transition: "opacity 0.2s",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
                 }}
               >
-                <ShoppingBag size={13} />
-                Buy Now
-                <ExternalLink size={10} />
+                <ShoppingBag size={12} />Buy
               </a>
-            )}
+            ) : <span />}
 
-            {/* Like */}
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={handleLike}
-              style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", color: liked ? "#e91e8c" : "var(--fg-muted)", fontWeight: 600, padding: 0 }}
+              title="Like"
+              style={{
+                width: 36,
+                height: 36,
+                background: liked ? "rgba(233,30,140,0.9)" : "rgba(255,255,255,0.95)",
+                border: "none",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+              }}
             >
-              <Heart size={15} fill={liked ? "#e91e8c" : "none"} stroke={liked ? "#e91e8c" : "currentColor"} />
-              {likeCount > 0 ? formatCount(likeCount) : ""}
-            </motion.button>
-
-            {/* Save */}
-            <motion.button
-              whileTap={{ scale: 0.8 }}
-              onClick={handleSave}
-              style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem", color: saved ? "#9b59b6" : "var(--fg-muted)", fontWeight: 600, padding: 0 }}
-            >
-              <Bookmark size={15} fill={saved ? "#9b59b6" : "none"} stroke={saved ? "#9b59b6" : "currentColor"} />
-              {saveCount > 0 ? formatCount(saveCount) : ""}
+              <Heart
+                size={15}
+                fill={liked ? "white" : "none"}
+                stroke={liked ? "white" : "#e91e8c"}
+              />
             </motion.button>
           </div>
+        </div>
+      </div>
+
+      {/* ── Info strip ────────────────────────────── */}
+      <div style={{ padding: "0.6rem 0.75rem 0.75rem", background: "white" }}>
+        <div
+          style={{
+            fontSize: "0.66rem",
+            color: "#9b59b6",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            marginBottom: "0.2rem",
+          }}
+        >
+          {(item.brand as string | undefined) ?? source ?? "Store"}
+        </div>
+        <h3
+          className="line-clamp-2"
+          style={{
+            fontSize: "0.87rem",
+            fontWeight: 600,
+            color: "#1a1a2e",
+            lineHeight: 1.35,
+            marginBottom: "0.35rem",
+          }}
+        >
+          {item.title}
+        </h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: "0.97rem", fontWeight: 800, color: "#1a1a2e" }}>
+            {item.price}
+          </span>
+          {likeCount > 0 && (
+            <span
+              style={{
+                fontSize: "0.72rem",
+                color: liked ? "#e91e8c" : "#999",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.2rem",
+              }}
+            >
+              <Heart
+                size={11}
+                fill={liked ? "#e91e8c" : "none"}
+                stroke={liked ? "#e91e8c" : "#999"}
+              />
+              {formatCount(likeCount)}
+            </span>
+          )}
         </div>
       </div>
     </motion.article>

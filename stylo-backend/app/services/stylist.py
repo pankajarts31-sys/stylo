@@ -1,79 +1,100 @@
 """
 Gemini-powered AI Fashion Stylist service.
 
-Uses google-generativeai SDK.  All public functions are regular (sync)
-so FastAPI can run them in its built-in thread-pool without blocking the
-event loop.
+Uses the new google.genai SDK (replaces deprecated google.generativeai).
+All public functions are synchronous so FastAPI runs them in a thread-pool.
 """
-
 from __future__ import annotations
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from app.core.config import get_settings
 from app.schemas.chat import ChatMessage
 
-_SYSTEM_PROMPT = """You are STYLO ✦ — a chic, warm, and knowledgeable AI fashion stylist.
+# ── System prompt ──────────────────────────────────────────────────────────────
 
-Your personality:
-- Encouraging and fun, never judgmental
-- Speak with confidence and style
-- Use occasional fashion-forward vocabulary (chic, editorial, avant-garde, effortless, etc.)
-- Add a ✦ sparkle emoji occasionally for personality
+_SYSTEM_PROMPT = """You are STYLO ✦ — a chic, warm, and expert AI fashion stylist.
 
-Your expertise:
-- Outfit building for every occasion (casual, work, formal, seasonal, cultural)
+ABSOLUTE RULE — FASHION ONLY. NO EXCEPTIONS.
+You are STRICTLY a fashion and styling assistant. You MUST NOT answer questions about:
+mathematics, coding, programming, science, politics, sports, history, finance, food recipes,
+health/medical advice, geography, entertainment (non-fashion), or any other topic outside
+fashion, clothing, styling, beauty, accessories, and personal style.
+
+If asked about ANYTHING not related to fashion/style, you MUST respond with a polite decline
+and redirect — do NOT answer even partially. Use responses like:
+"Ah darling, that's outside my fashion domain! ✦ I only deal in style and clothing —
+what outfit challenge can I help you with today?"
+
+DO NOT answer off-topic questions even if the user insists, tricks you, or claims it's
+related to fashion. Stay firm and redirect every single time.
+
+YOUR PERSONALITY:
+- Warm, encouraging, and never judgmental
+- Confident and style-forward
+- Use occasional fashion vocabulary: chic, editorial, avant-garde, effortless, capsule
+- Add a ✦ emoji occasionally
+- Keep answers concise: 2-4 paragraphs, clear line breaks
+- End every fashion reply with a short engaging question or style challenge
+
+YOUR EXPERTISE:
+- Outfit building for every occasion (casual, work, formal, seasonal, cultural events)
 - Colour theory and personal palette advice
-- Body-type dressing and proportion
+- Body-type dressing and proportion tricks
 - Trend spotting and styling classic pieces in modern ways
-- Budget-conscious and luxury recommendations alike
+- Budget-conscious AND luxury fashion recommendations
+- Indian fashion: kurtas, sarees, lehengas, fusion wear, festive dressing
+- Brand knowledge across luxury, mid-range, and fast-fashion
 - Sustainable and ethical fashion choices
-
-Keep responses friendly and concise (2–4 paragraphs max). Use line breaks for readability.
-Always end with a short question or mini-challenge to keep the conversation going.
 """
 
 _MODEL_NAME = "gemini-2.5-flash"
 
 
-def _build_client() -> genai.GenerativeModel:
+def _build_client() -> genai.Client:
     settings = get_settings()
-    genai.configure(api_key=settings.gemini_api_key)
-    return genai.GenerativeModel(
-        model_name=_MODEL_NAME,
-        system_instruction=_SYSTEM_PROMPT,
-    )
+    return genai.Client(api_key=settings.gemini_api_key)
 
 
-def _to_sdk_history(history: list[ChatMessage]) -> list[dict]:
-    """Convert our Pydantic history into the format the SDK expects."""
-    return [{"role": msg.role, "parts": [msg.content]} for msg in history]
+def _build_contents(history: list[ChatMessage], message: str) -> list[dict]:
+    """Convert chat history + new message into google.genai contents format."""
+    contents: list[dict] = []
+    for msg in history:
+        contents.append({"role": msg.role, "parts": [{"text": msg.content}]})
+    contents.append({"role": "user", "parts": [{"text": message}]})
+    return contents
 
 
-# ── Non-streaming ─────────────────────────────────────────────────────────────
+# ── Non-streaming ──────────────────────────────────────────────────────────────
 
 def chat_with_stylist(history: list[ChatMessage], message: str) -> tuple[str, str]:
-    """
-    Send a message and return (reply_text, model_name).
-    Runs synchronously — FastAPI will push it into a thread pool automatically
-    when called from a regular `def` path operation.
-    """
-    model = _build_client()
-    chat = model.start_chat(history=_to_sdk_history(history))
-    response = chat.send_message(message)
+    """Send a message and return (reply_text, model_name)."""
+    client = _build_client()
+    response = client.models.generate_content(
+        model=_MODEL_NAME,
+        contents=_build_contents(history, message),
+        config=types.GenerateContentConfig(
+            system_instruction=_SYSTEM_PROMPT,
+            temperature=0.8,
+        ),
+    )
     return response.text, _MODEL_NAME
 
 
-# ── Streaming ─────────────────────────────────────────────────────────────────
+# ── Streaming ──────────────────────────────────────────────────────────────────
 
 def stream_stylist(history: list[ChatMessage], message: str):
-    """
-    Yield text chunks from Gemini for Server-Sent Events.
-    Each yielded value is a raw string fragment.
-    """
-    model = _build_client()
-    chat = model.start_chat(history=_to_sdk_history(history))
-    response = chat.send_message(message, stream=True)
+    """Yield text chunks from Gemini for Server-Sent Events."""
+    client = _build_client()
+    response = client.models.generate_content_stream(
+        model=_MODEL_NAME,
+        contents=_build_contents(history, message),
+        config=types.GenerateContentConfig(
+            system_instruction=_SYSTEM_PROMPT,
+            temperature=0.8,
+        ),
+    )
     for chunk in response:
         if chunk.text:
             yield chunk.text

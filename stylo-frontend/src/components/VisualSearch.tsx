@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Camera, Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import FeedCard from "@/components/FeedCard";
 import type { FeedItem } from "@/data/feedData";
@@ -53,6 +53,10 @@ export default function VisualSearch({ onClose }: VisualSearchProps) {
       return;
     }
     setFile(f);
+    // Revoke the old object URL to prevent memory leaks
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
     setPreview(URL.createObjectURL(f));
     setError(null);
     setResults([]);
