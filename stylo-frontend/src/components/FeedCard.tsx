@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Heart, Bookmark, ShoppingBag, Store } from "lucide-react";
 import { useState } from "react";
-import Image from "next/image";
+
 import { useAuth } from "@/context/AuthContext";
 import type { FeedItem } from "@/data/feedData";
 
@@ -114,15 +114,12 @@ export default function FeedCard({ item, index }: FeedCardProps) {
       {/* ── Image ─────────────────────────────────── */}
       <div style={{ position: "relative", lineHeight: 0, background: "white" }}>
         {showImg ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={thumbnail!}
             alt={item.title}
-            width={400}
-            height={0}
-            sizes="(max-width: 500px) 100vw, (max-width: 768px) 50vw, 25vw"
             style={{ width: "100%", height: "auto", display: "block" }}
             onError={() => setImgError(true)}
-            unoptimized
           />
         ) : (
           <div

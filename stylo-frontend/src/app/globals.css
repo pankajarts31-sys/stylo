@@ -245,19 +245,40 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  margin-left: -0.75rem; /* gutter size offset */
+  margin-left: -1rem; /* gutter size offset */
   width: auto;
 }
 .my-masonry-grid_column {
-  padding-left: 0.75rem; /* gutter size */
+  padding-left: 1rem; /* gutter size */
   background-clip: padding-box;
 }
 
 /* Style your items */
 .my-masonry-grid_column > div,
 .my-masonry-grid_column > article {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  /* Smooth animation for the staggered grid look */
+  animation: masonry-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+@keyframes masonry-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Adding staggered delays for initial load of elements */
+.my-masonry-grid_column > *:nth-child(1) { animation-delay: 0.05s; }
+.my-masonry-grid_column > *:nth-child(2) { animation-delay: 0.1s; }
+.my-masonry-grid_column > *:nth-child(3) { animation-delay: 0.15s; }
+.my-masonry-grid_column > *:nth-child(4) { animation-delay: 0.2s; }
+.my-masonry-grid_column > *:nth-child(5) { animation-delay: 0.25s; }
+.my-masonry-grid_column > *:nth-child(n+6) { animation-delay: 0.3s; }
 
 /* ─── Utilities ──────────────────────────────────────────────── */
 .line-clamp-2 {

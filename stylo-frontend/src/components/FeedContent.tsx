@@ -101,7 +101,7 @@ export default function FeedContent() {
 
   return (
     <main style={{ minHeight: "calc(100vh - 68px)", padding: "0 1.5rem 5rem" }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1800px", margin: "0 auto" }}>
 
         {/* ── Page Header ── */}
         <motion.div
@@ -193,13 +193,11 @@ export default function FeedContent() {
           </motion.div>
         ) : (
           <Masonry
-            breakpointCols={{ default: 4, 1100: 3, 768: 2, 500: 1 }}
+            breakpointCols={{ default: 6, 1500: 5, 1100: 4, 768: 3, 500: 2, 400: 1 }}
             className="my-masonry-grid"
             columnClassName="my-masonry-grid_column"
           >
-            <AnimatePresence mode="popLayout">
-              {items.map((item, i) => <FeedCard key={item.id} item={item} index={i % PAGE_SIZE} />)}
-            </AnimatePresence>
+            {items.map((item, i) => <FeedCard key={item.id} item={item} index={i % PAGE_SIZE} />)}
           </Masonry>
         )}
 

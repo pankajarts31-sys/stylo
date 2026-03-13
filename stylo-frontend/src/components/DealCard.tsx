@@ -145,7 +145,7 @@ export default function DealCard({ item, index }: DealCardProps) {
     >
       {/* ── Product image ── */}
       <div style={{
-        paddingTop: "60%", position: "relative", overflow: "hidden",
+        position: "relative", overflow: "hidden",
         background: item.imageGradient ?? "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
       }}>
         {showThumbnail ? (
@@ -154,12 +154,14 @@ export default function DealCard({ item, index }: DealCardProps) {
             src={item.thumbnail}
             alt={item.title}
             onError={() => setImgError(true)}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: "100%", height: "auto", display: "block" }}
           />
         ) : (
-          <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem" }}>
-            {item.imageEmoji ?? "🛍️"}
-          </span>
+          <div style={{ paddingTop: "125%", position: "relative" }}>
+            <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3.5rem" }}>
+              {item.imageEmoji ?? "🛍️"}
+            </span>
+          </div>
         )}
 
         {/* Badges */}

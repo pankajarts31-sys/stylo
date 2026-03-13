@@ -121,7 +121,7 @@ export default function DealsContent() {
 
   return (
     <main style={{ minHeight: "calc(100vh - 68px)", padding: "0 1.5rem 5rem" }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1800px", margin: "0 auto" }}>
 
         {/* ── Header ── */}
         <motion.div
@@ -339,9 +339,11 @@ export default function DealsContent() {
         ) : (
           <Masonry
             breakpointCols={{
-              default: 3,
-              1100: 2,
-              700: 1,
+              default: 5,
+              1500: 4,
+              1100: 3,
+              800: 2,
+              600: 1
             }}
             className="my-masonry-grid"
             columnClassName="my-masonry-grid_column"
