@@ -2,7 +2,7 @@
 
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
-import { Sparkles, TrendingUp, ShoppingBag, Zap, ArrowRight } from "lucide-react";
+import { Sparkles, TrendingUp, ShoppingBag, ArrowRight } from "lucide-react";
 
 const FEATURES = [
   {
@@ -10,24 +10,21 @@ const FEATURES = [
     title: "AI Fashion Stylist",
     desc: "Chat with your personal AI stylist trained on thousands of looks. Get outfit ideas for any occasion.",
     href: "/stylist",
-    gradient: "linear-gradient(135deg, #c9b8f5, #9b59b6)",
-    accent: "#c9b8f5",
+    gradient: "linear-gradient(135deg, #a29bfe, #6c5ce7)",
   },
   {
     icon: <TrendingUp size={28} />,
     title: "Trending Feed",
     desc: "Discover what's hot right now. Curated looks from across the fashion universe updated in real-time.",
     href: "/feed",
-    gradient: "linear-gradient(135deg, #f5b8d8, #e91e8c)",
-    accent: "#f5b8d8",
+    gradient: "linear-gradient(135deg, #e83e8c, #ad1457)",
   },
   {
     icon: <ShoppingBag size={28} />,
     title: "Smart Deal Hunter",
     desc: "Find the same item across 20+ stores with price tracking, reviews, and quality scores.",
     href: "/deals",
-    gradient: "linear-gradient(135deg, #b8f5e8, #1abc9c)",
-    accent: "#b8f5e8",
+    gradient: "linear-gradient(135deg, #ffa07a, #e83e8c)",
   },
 ];
 
@@ -50,8 +47,51 @@ export default function HomePage() {
         flexDirection: "column",
         alignItems: "center",
         padding: "0 1.5rem 5rem",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* ── Marquee Background ── */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-around",
+          paddingTop: "5rem",
+          paddingBottom: "5rem",
+          overflow: "hidden",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <div style={{ display: "flex", animation: "marquee 25s linear infinite" }}>
+          <span className="marquee-text" style={{ paddingRight: "5rem" }}>
+            SMART STYLE • TREND DISCOVERY • BEST DEALS • AI STYLIST •
+          </span>
+          <span className="marquee-text" style={{ paddingRight: "5rem" }}>
+            SMART STYLE • TREND DISCOVERY • BEST DEALS • AI STYLIST •
+          </span>
+        </div>
+        <div style={{ display: "flex", animation: "marquee-reverse 30s linear infinite" }}>
+          <span className="marquee-text" style={{ paddingRight: "5rem" }}>
+            AI OUTFIT ADVICE • VIRTUAL CLOSET • LUXURY FASHION •
+          </span>
+          <span className="marquee-text" style={{ paddingRight: "5rem" }}>
+            AI OUTFIT ADVICE • VIRTUAL CLOSET • LUXURY FASHION •
+          </span>
+        </div>
+        <div style={{ display: "flex", animation: "marquee 35s linear infinite" }}>
+          <span className="marquee-text" style={{ paddingRight: "5rem" }}>
+            YOUR PERSONAL STYLIST • 2025 TRENDS • SHOP THE LOOK •
+          </span>
+          <span className="marquee-text" style={{ paddingRight: "5rem" }}>
+            YOUR PERSONAL STYLIST • 2025 TRENDS • SHOP THE LOOK •
+          </span>
+        </div>
+      </div>
+
       {/* ── Hero ── */}
       <motion.section
         variants={containerVariants}
@@ -59,61 +99,85 @@ export default function HomePage() {
         animate="visible"
         style={{
           textAlign: "center",
-          paddingTop: "6rem",
-          maxWidth: "780px",
+          paddingTop: "8rem",
+          maxWidth: "850px",
           width: "100%",
+          position: "relative",
+          zIndex: 10,
         }}
       >
-        <motion.div variants={itemVariants} style={{ marginBottom: "1.5rem" }}>
+        {/* Subtitle label */}
+        <motion.div variants={itemVariants} style={{ marginBottom: "3rem" }}>
           <span
             className="glass"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "0.5rem",
-              padding: "0.4rem 1.1rem",
+              padding: "0.5rem 1.25rem",
               borderRadius: "50px",
-              fontSize: "0.82rem",
+              fontSize: "0.72rem",
               fontWeight: 600,
-              color: "#9b59b6",
-              letterSpacing: "0.05em",
+              color: "var(--brand-lavender)",
+              letterSpacing: "0.12em",
               textTransform: "uppercase",
             }}
           >
-            <Zap size={13} />
+            <span style={{ color: "var(--brand-rose)" }}>✦</span>
             Your Virtual Fashion Universe
           </span>
         </motion.div>
 
+        {/* Main heading */}
         <motion.h1
           variants={itemVariants}
-          className="font-display"
-          style={{ fontSize: "clamp(2.8rem, 7vw, 5rem)", lineHeight: 1.1, marginBottom: "1.5rem" }}
+          style={{
+            fontSize: "clamp(3rem, 8vw, 6rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
+            marginBottom: "2rem",
+          }}
         >
-          Style Has Never Been{" "}
-          <em className="gradient-text" style={{ fontStyle: "italic" }}>
+          Style Has Never Been
+          <br />
+          <span
+            className="font-display gradient-text text-glow"
+            style={{
+              fontStyle: "italic",
+              display: "block",
+              marginTop: "0.5rem",
+            }}
+          >
             This Smart
-          </em>
+          </span>
         </motion.h1>
 
+        {/* Description */}
         <motion.p
           variants={itemVariants}
           style={{
+            maxWidth: "640px",
+            margin: "0 auto 3rem",
             fontSize: "1.15rem",
-            color: "var(--fg-secondary)",
+            color: "#9ca3af",
             lineHeight: 1.75,
-            marginBottom: "2.5rem",
-            maxWidth: "560px",
-            margin: "0 auto 2.5rem",
           }}
         >
-          STYLO combines AI outfit advice, trending fashion discovery, and cross-platform deal hunting
-          into one beautifully curated experience.
+          STYLO combines AI outfit advice, trending fashion discovery, and
+          cross-platform deal hunting into one beautifully curated experience.
         </motion.p>
 
+        {/* CTA Buttons */}
         <motion.div
           variants={itemVariants}
-          style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            gap: "1rem",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            marginBottom: "5rem",
+          }}
         >
           <Link href="/stylist">
             <motion.button
@@ -123,12 +187,10 @@ export default function HomePage() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "0.5rem",
-                fontSize: "1rem",
-                padding: "0.85rem 2.25rem",
+                gap: "0.75rem",
               }}
             >
-              <Sparkles size={18} />
+              <Sparkles size={20} />
               Meet Your Stylist
             </motion.button>
           </Link>
@@ -141,43 +203,53 @@ export default function HomePage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                fontSize: "1rem",
-                padding: "0.85rem 2.25rem",
               }}
             >
               Get Started Free
-              <ArrowRight size={16} />
+              <ArrowRight size={18} />
             </motion.button>
           </Link>
         </motion.div>
 
-        {/* Subtle stat pills */}
+        {/* Floating stat pills */}
         <motion.div
           variants={itemVariants}
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
             gap: "1.5rem",
-            justifyContent: "center",
-            marginTop: "3.5rem",
-            flexWrap: "wrap",
+            maxWidth: "700px",
+            margin: "0 auto",
           }}
         >
           {[
-            { value: "50K+", label: "Outfits styled" },
-            { value: "20+", label: "Stores tracked" },
-            { value: "AI", label: "Powered by Gemini" },
+            { value: "50K+", label: "Outfits styled", delay: "0s" },
+            { value: "20+", label: "Stores tracked", delay: "1s" },
+            { value: "AI", label: "Powered by Gemini", delay: "2s" },
           ].map((stat) => (
             <div
               key={stat.label}
               className="glass"
-              style={{ padding: "0.6rem 1.4rem", borderRadius: "50px", textAlign: "center" }}
+              style={{
+                padding: "1.5rem",
+                borderRadius: "2rem",
+                textAlign: "center",
+                animation: `float 6s ease-in-out infinite`,
+                animationDelay: stat.delay,
+              }}
             >
-              <div
-                style={{ fontSize: "1.1rem", fontWeight: 700, color: "#9b59b6" }}
-              >
+              <div style={{ fontSize: "2.5rem", fontWeight: 700, marginBottom: "0.25rem" }}>
                 {stat.value}
               </div>
-              <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: "0.1rem" }}>
+              <div
+                style={{
+                  fontSize: "0.7rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  fontWeight: 600,
+                  color: "#6b7280",
+                }}
+              >
                 {stat.label}
               </div>
             </div>
@@ -198,6 +270,8 @@ export default function HomePage() {
           maxWidth: "1100px",
           width: "100%",
           marginTop: "6rem",
+          position: "relative",
+          zIndex: 10,
         }}
       >
         {FEATURES.map((feat) => (
@@ -225,7 +299,7 @@ export default function HomePage() {
                     justifyContent: "center",
                     color: "white",
                     marginBottom: "1.25rem",
-                    boxShadow: `0 8px 20px ${feat.accent}60`,
+                    boxShadow: `0 8px 25px rgba(232, 62, 140, 0.3)`,
                   }}
                 >
                   {feat.icon}
@@ -234,13 +308,13 @@ export default function HomePage() {
                   style={{
                     fontSize: "1.2rem",
                     fontWeight: 700,
-                    color: "var(--fg-primary)",
+                    color: "white",
                     marginBottom: "0.65rem",
                   }}
                 >
                   {feat.title}
                 </h2>
-                <p style={{ fontSize: "0.92rem", color: "var(--fg-secondary)", lineHeight: 1.65 }}>
+                <p style={{ fontSize: "0.92rem", color: "#9ca3af", lineHeight: 1.65 }}>
                   {feat.desc}
                 </p>
                 <div
@@ -251,7 +325,7 @@ export default function HomePage() {
                     marginTop: "1.25rem",
                     fontSize: "0.85rem",
                     fontWeight: 600,
-                    color: "#9b59b6",
+                    color: "var(--brand-lavender)",
                   }}
                 >
                   Explore <ArrowRight size={14} />

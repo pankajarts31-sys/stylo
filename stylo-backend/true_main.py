@@ -1,7 +1,9 @@
 import os as _os
-if _os.path.exists(".env"):
+from pathlib import Path as _Path
+_env_path = _Path(__file__).resolve().parent / ".env"
+if _env_path.exists():
     from dotenv import load_dotenv
-    load_dotenv()  # Local dev only — Railway injects env vars natively
+    load_dotenv(_env_path)  # Local dev only — Railway injects env vars natively
 
 
 import logging

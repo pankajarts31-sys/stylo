@@ -10,9 +10,10 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface VisualSearchProps {
   onClose: () => void;
+  onResults?: (matches: FeedItem[], query: string) => void;
 }
 
-export default function VisualSearch({ onClose }: VisualSearchProps) {
+export default function VisualSearch({ onClose, onResults }: VisualSearchProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -77,7 +78,12 @@ export default function VisualSearch({ onClose }: VisualSearchProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? "Visual search failed.");
 
-      setResults(data.matches);
+      if (onResults && data.matches?.length > 0) {
+        onResults(data.matches, data.query ?? "visual search");
+        onClose();
+      } else {
+        setResults(data.matches);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

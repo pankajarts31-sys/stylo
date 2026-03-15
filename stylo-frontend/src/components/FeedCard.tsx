@@ -10,11 +10,12 @@ import type { FeedItem } from "@/data/feedData";
 interface FeedCardProps {
   item: FeedItem;
   index: number;
+  onSelect?: (item: FeedItem) => void;
 }
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-export default function FeedCard({ item, index }: FeedCardProps) {
+export default function FeedCard({ item, index, onSelect }: FeedCardProps) {
   const [liked, setLiked]             = useState(false);
   const [saved, setSaved]             = useState(false);
   const [savedItemId, setSavedItemId] = useState<number | null>(null);
@@ -100,19 +101,16 @@ export default function FeedCard({ item, index }: FeedCardProps) {
       transition={{ duration: 0.35, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => onSelect?.(item)}
+      className="glass-card"
       style={{
         borderRadius: "16px",
         overflow: "hidden",
         cursor: "pointer",
-        background: "white",
-        boxShadow: hovered
-          ? "0 16px 48px rgba(140,100,220,0.22)"
-          : "0 2px 10px rgba(0,0,0,0.07)",
-        transition: "box-shadow 0.25s ease",
       }}
     >
       {/* ── Image ─────────────────────────────────── */}
-      <div style={{ position: "relative", lineHeight: 0, background: "white" }}>
+      <div style={{ position: "relative", lineHeight: 0 }}>
         {showImg ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -127,7 +125,7 @@ export default function FeedCard({ item, index }: FeedCardProps) {
               paddingTop: "125%",
               background:
                 (item.imageGradient as string | undefined) ??
-                "linear-gradient(135deg, #c9b8f5, #f5b8d8)",
+                "linear-gradient(135deg, #a29bfe, #e83e8c)",
               position: "relative",
             }}
           >
@@ -151,15 +149,15 @@ export default function FeedCard({ item, index }: FeedCardProps) {
           <div
             style={{
               position: "absolute",
-              top: 10,
-              left: 10,
-              background: "rgba(255,255,255,0.93)",
-              backdropFilter: "blur(8px)",
-              borderRadius: "50px",
-              padding: "0.18rem 0.55rem",
-              fontSize: "0.67rem",
+              top: 12,
+              left: 12,
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(12px)",
+              borderRadius: "6px",
+              padding: "0.2rem 0.5rem",
+              fontSize: "0.62rem",
               fontWeight: 700,
-              color: "#2d1b69",
+              color: "white",
               display: "flex",
               alignItems: "center",
               gap: "0.25rem",
@@ -167,9 +165,12 @@ export default function FeedCard({ item, index }: FeedCardProps) {
               overflow: "hidden",
               whiteSpace: "nowrap",
               textOverflow: "ellipsis",
+              textTransform: "uppercase",
+              letterSpacing: "0.03em",
+              border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
-            <Store size={10} />{source}
+            <Store size={9} />{source}
           </div>
         )}
 
@@ -178,13 +179,13 @@ export default function FeedCard({ item, index }: FeedCardProps) {
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(0,0,0,0.15)",
+            background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
             opacity: hovered ? 1 : 0,
-            transition: "opacity 0.2s ease",
+            transition: "opacity 0.25s ease",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            padding: "10px",
+            padding: "12px",
           }}
         >
           {/* Top-right: Save */}
@@ -197,26 +198,26 @@ export default function FeedCard({ item, index }: FeedCardProps) {
               style={{
                 width: 36,
                 height: 36,
-                background: saved ? "#9b59b6" : "rgba(255,255,255,0.95)",
-                border: "none",
+                background: saved ? "#e83e8c" : "rgba(255,255,255,0.15)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: saveLoading ? "wait" : "pointer",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
                 opacity: saveLoading ? 0.6 : 1,
               }}
             >
               <Bookmark
                 size={15}
                 fill={saved ? "white" : "none"}
-                stroke={saved ? "white" : "#9b59b6"}
+                stroke="white"
               />
             </motion.button>
           </div>
 
-          {/* Bottom: Buy + Like */}
+          {/* Bottom: Quick Shop + Like */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             {buyLink ? (
               <a
@@ -228,17 +229,20 @@ export default function FeedCard({ item, index }: FeedCardProps) {
                   display: "flex",
                   alignItems: "center",
                   gap: "0.3rem",
-                  padding: "0.38rem 0.85rem",
-                  borderRadius: "50px",
-                  background: "rgba(255,255,255,0.95)",
-                  color: "#9b59b6",
-                  fontSize: "0.78rem",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                  background: "white",
+                  color: "black",
+                  fontSize: "0.72rem",
                   fontWeight: 700,
                   textDecoration: "none",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  transform: hovered ? "translateY(0)" : "translateY(8px)",
+                  transition: "transform 0.25s ease",
                 }}
               >
-                <ShoppingBag size={12} />Buy
+                <ShoppingBag size={12} />Quick Shop
               </a>
             ) : <span />}
 
@@ -249,20 +253,20 @@ export default function FeedCard({ item, index }: FeedCardProps) {
               style={{
                 width: 36,
                 height: 36,
-                background: liked ? "rgba(233,30,140,0.9)" : "rgba(255,255,255,0.95)",
-                border: "none",
+                background: liked ? "rgba(232,62,140,0.9)" : "rgba(255,255,255,0.15)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
               }}
             >
               <Heart
                 size={15}
                 fill={liked ? "white" : "none"}
-                stroke={liked ? "white" : "#e91e8c"}
+                stroke="white"
               />
             </motion.button>
           </div>
@@ -270,11 +274,11 @@ export default function FeedCard({ item, index }: FeedCardProps) {
       </div>
 
       {/* ── Info strip ────────────────────────────── */}
-      <div style={{ padding: "0.6rem 0.75rem 0.75rem", background: "white" }}>
+      <div style={{ padding: "0.65rem 0.75rem 0.75rem" }}>
         <div
           style={{
-            fontSize: "0.66rem",
-            color: "#9b59b6",
+            fontSize: "0.64rem",
+            color: "#e83e8c",
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
@@ -286,9 +290,9 @@ export default function FeedCard({ item, index }: FeedCardProps) {
         <h3
           className="line-clamp-2"
           style={{
-            fontSize: "0.87rem",
+            fontSize: "0.85rem",
             fontWeight: 600,
-            color: "#1a1a2e",
+            color: "white",
             lineHeight: 1.35,
             marginBottom: "0.35rem",
           }}
@@ -296,14 +300,14 @@ export default function FeedCard({ item, index }: FeedCardProps) {
           {item.title}
         </h3>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "0.97rem", fontWeight: 800, color: "#1a1a2e" }}>
+          <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "white" }}>
             {item.price}
           </span>
           {likeCount > 0 && (
             <span
               style={{
                 fontSize: "0.72rem",
-                color: liked ? "#e91e8c" : "#999",
+                color: liked ? "#e83e8c" : "#6b7280",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.2rem",
@@ -311,8 +315,8 @@ export default function FeedCard({ item, index }: FeedCardProps) {
             >
               <Heart
                 size={11}
-                fill={liked ? "#e91e8c" : "none"}
-                stroke={liked ? "#e91e8c" : "#999"}
+                fill={liked ? "#e83e8c" : "none"}
+                stroke={liked ? "#e83e8c" : "#6b7280"}
               />
               {formatCount(likeCount)}
             </span>

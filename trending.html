@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>STYLO - Trending Feed</title>
+<!-- Tailwind CSS CDN with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style data-purpose="custom-config">
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #120d1a 0%, #1e132b 50%, #150e24 100%);
+      color: #ffffff;
+      min-height: 100vh;
+    }
+
+    .font-serif-elegant {
+      font-family: 'Playfair Display', serif;
+    }
+
+    /* Glassmorphism Classes */
+    .glass-header {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-search {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Gradient Text & Glows */
+    .text-glow-trending {
+      background: linear-gradient(to right, #ff99cc, #ffccff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(255, 153, 204, 0.4);
+    }
+
+    .bg-gradient-plum {
+      background: linear-gradient(to right, #6a1b9a, #ad1457);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #120d1a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c2a4d;
+      border-radius: 10px;
+    }
+  </style>
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            plum: {
+              DEFAULT: '#4a1d4a',
+              light: '#6a1b9a',
+              dark: '#2e0b2e',
+            },
+            rose: {
+              DEFAULT: '#d81b60',
+              light: '#f06292',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="overflow-x-hidden">
+<!-- BEGIN: Navigation Header -->
+<header class="glass-header sticky top-0 z-50 w-full px-6 py-4 flex items-center justify-between">
+<div class="flex items-center space-x-12">
+<!-- Logo Section -->
+<div class="flex items-center space-x-2 cursor-pointer">
+<div class="w-8 h-8 bg-gradient-to-tr from-pink-400 to-purple-600 rounded-lg flex items-center justify-center">
+<span class="text-white font-bold text-xl">✧</span>
+</div>
+<span class="text-2xl font-serif-elegant tracking-widest uppercase text-pink-100">STYLO</span>
+</div>
+<!-- Main Navigation -->
+<nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-300">
+<a class="hover:text-pink-300 transition-colors" href="#">Home</a>
+<a class="hover:text-pink-300 transition-colors" href="#">AI Stylist</a>
+<div class="relative">
+<a class="text-white" href="#">Trending</a>
+<span class="absolute -bottom-1 left-0 w-full h-0.5 bg-pink-400 rounded-full"></span>
+</div>
+<a class="hover:text-pink-300 transition-colors" href="#">Deals</a>
+<a class="hover:text-pink-300 transition-colors" href="#">Saved</a>
+</nav>
+</div>
+<!-- Right Side Controls -->
+<div class="flex items-center space-x-6">
+<!-- Gender Toggles -->
+<div class="flex bg-white/5 rounded-full p-1 border border-white/10 text-xs">
+<button class="px-4 py-1.5 rounded-full text-gray-400">Men</button>
+<button class="px-4 py-1.5 rounded-full bg-rose-DEFAULT text-white shadow-lg">Women</button>
+</div>
+<!-- Auth Controls -->
+<div class="flex items-center space-x-4">
+<button class="text-sm font-medium text-gray-300 hover:text-white">Log in</button>
+<button class="px-6 py-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full text-sm font-bold text-white shadow-[0_0_15px_rgba(192,132,252,0.4)] hover:scale-105 transition-transform">
+          Get Started
+        </button>
+</div>
+</div>
+</header>
+<!-- END: Navigation Header -->
+<!-- BEGIN: Hero Section -->
+<main class="relative px-6 pt-16 pb-12 max-w-7xl mx-auto">
+<!-- Hero Text -->
+<div class="text-left mb-12">
+<div class="flex items-center space-x-2 text-rose-300 text-xs font-bold tracking-widest uppercase mb-4">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Live Trends • Google Shopping</span>
+</div>
+<h1 class="text-5xl md:text-7xl font-serif-elegant mb-6">
+        What's <span class="text-glow-trending italic">Trending</span> Right Now
+      </h1>
+<p class="text-gray-400 text-lg max-w-2xl">
+        Curated looks and statement pieces loved by the STYLO community ✦
+      </p>
+</div>
+<!-- Search Bar -->
+<div class="max-w-3xl mx-auto mb-16 relative">
+<div class="glass-search rounded-full px-6 py-4 flex items-center space-x-4">
+<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<input class="bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 w-full text-lg" placeholder="Search fashion, brands, or describe a look..." type="text"/>
+<div class="flex items-center space-x-4 border-l border-white/10 pl-4">
+<button class="text-gray-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-lg text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- Sort Toggle -->
+<div class="flex justify-end mb-8">
+<div class="flex items-center space-x-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-sm font-medium text-gray-300">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>🔥 Trending</span>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="flex flex-wrap gap-4 mb-10 items-center">
+<button class="px-8 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm shadow-[0_0_20px_rgba(236,72,153,0.3)]">All</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Dresses</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Outerwear</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Streetwear</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Minimalist</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Y2K</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Cottagecore</button>
+<button class="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors text-sm">Workwear</button>
+</div>
+<p class="text-gray-500 text-sm mb-6">20 looks found</p>
+<!-- BEGIN: Masonry Product Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+<!-- Product Card 1 -->
+<div class="glass-card rounded-2xl overflow-hidden group">
+<div class="relative">
+<div class="absolute top-3 left-3 z-10 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewbox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+<span class="text-[10px] font-bold text-white uppercase tracking-tight">Amazon.in</span>
+</div>
+<img alt="Fashion Item" class="w-full h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUvcSMSQ7nvZ_qGG3AfS0Cp_Q72kDlB2bM5z_wo-7Jo8B3-W92qWsj88tPXN2-7YyFv57uoAjizcfNsPcucPEVI83OuE9pIgsoodXaXFBIFZqwPLL0FGhIiqrZuSkfpZrAf6gQpI7Sk_P9lJ6qoqZVdYfvshWoB8txExSoXgzgA8u30CH7t4uOQda4TFQJ5TnskJwrVBVBtq9dNRLVUpFwtVKrufW20-QE7Q6DMFOMtjzuamM59fAJG5u6HvctljAfxRrnP8wlplWB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white text-black font-bold text-xs rounded-lg uppercase tracking-wider transform translate-y-2 group-hover:translate-y-0 transition-transform">Quick Shop</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="glass-card rounded-2xl overflow-hidden group">
+<div class="relative">
+<div class="absolute top-3 left-3 z-10 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewbox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+<span class="text-[10px] font-bold text-white uppercase tracking-tight">NEWME</span>
+</div>
+<img alt="Fashion Item" class="w-full h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKjm34-olL-4FPoFINBaJdO9U5rP6Ux5jar8twRc7YRoutwmEVFRaWumOwRaBVPpPTQ1YdGoyfmZN5dQcuvnKDZ-XVnOPea9HdPBTF5K30e_rL-lg9UvZUIXuEAHwe9DAl-fYi1E96MUZFz8n9sGPNITCIiJAs8nM4UY6QHeMC39bmRq27NkcCsZ45iIrIoK7nSqbZZHyrujHK-Y_undT5bL_-RHkKH1RCwExGeNPC-ul3Y9KKI3s3Z5LZcvFZ4U79Zm9diVoJfo4j"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white text-black font-bold text-xs rounded-lg uppercase tracking-wider transform translate-y-2 group-hover:translate-y-0 transition-transform">Quick Shop</button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="glass-card rounded-2xl overflow-hidden group">
+<div class="relative">
+<div class="absolute top-3 left-3 z-10 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewbox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+<span class="text-[10px] font-bold text-white uppercase tracking-tight">Amazon.in</span>
+</div>
+<img alt="Fashion Item" class="w-full h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaRMf_6baYWVmkbxwoA_yDBaOc176VeCd9bQInfWeCs2vJf5xg5tLaeULbcEcZfR3dh0xL3GmAuFFVnUnLuCw27Y3o9SyNwpvxznKk79ytKVPoggzS0A1VZim5FytxnfcKdokLJ-8xn2jEhnqhDLyCoJE93vjNfISq1L1ZUN-Zr95ghZg6S-wfm8EAuiqIAQZVjNMjva3AU5RyIBX9dT2BWnwszHudIAeFYeTNJ1m2dD-OBoEIrcIFmnLMpHq4maSLOti8mB4jtC0Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white text-black font-bold text-xs rounded-lg uppercase tracking-wider transform translate-y-2 group-hover:translate-y-0 transition-transform">Quick Shop</button>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="glass-card rounded-2xl overflow-hidden group">
+<div class="relative">
+<div class="absolute top-3 left-3 z-10 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewbox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+<span class="text-[10px] font-bold text-white uppercase tracking-tight">Nykaa Fashion</span>
+</div>
+<img alt="Fashion Item" class="w-full h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYIzyRKA0sl_XE5B8DGBF66_csaGVNZkNQ2fCxKLTodLCSPqtZ3ekX2cpgjkEIgjgLXVZyj9pT-BjBsYj7u_48GmmL8wH53Ss3SmvQLCEyHRAZEoL_gQL7FBeCN3AXf6RFaU_nz1JI5mZzrXI0dicaFbS8YOGrB1XLwJXV7f08LprU5qLaSpNRAcE0B-odYi3rfNbLh0TlSsnfQgdJuZ6FnSw-TNZsS55l_40ZxgtOM_87og2-j5UcxL9JNqLowoTrv8rmrA36A-sx"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white text-black font-bold text-xs rounded-lg uppercase tracking-wider transform translate-y-2 group-hover:translate-y-0 transition-transform">Quick Shop</button>
+</div>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="glass-card rounded-2xl overflow-hidden group">
+<div class="relative">
+<div class="absolute top-3 left-3 z-10 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewbox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+<span class="text-[10px] font-bold text-white uppercase tracking-tight">Myntra</span>
+</div>
+<img alt="Fashion Item" class="w-full h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKRXqSsYv4cVkGJogRvUNZsOj_301zj6GmEKVZjYRex5-2m9G-IBwmqllN32HFjRbktbLk50Lgw9Ni8PuuRtsCbGeJo6dwYj8pfaBcj39qnAOZVRnTLqVwLx-OBlQIho6nuW7TE1mgNqxajT1Es-oNqSdbe7UaNKZpwTrtJj5pW7S2Snd8DNi2SDnSMwYtjJLMY8gvuxA4hfaa3RNqTy3fPZjK9O__1AEVd9iFhiOj8jose-2ASXjNmRdFLdOoqZrveh5wHm-4Sbm3"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white text-black font-bold text-xs rounded-lg uppercase tracking-wider transform translate-y-2 group-hover:translate-y-0 transition-transform">Quick Shop</button>
+</div>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="glass-card rounded-2xl overflow-hidden group">
+<div class="relative">
+<div class="absolute top-3 left-3 z-10 bg-black/40 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10">
+<svg class="w-3 h-3 text-white" fill="currentColor" viewbox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+<span class="text-[10px] font-bold text-white uppercase tracking-tight">Amazon.in</span>
+</div>
+<img alt="Fashion Item" class="w-full h-80 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXMBa_0neX1E5s58aYwzkldf7v0RtNgOR1G3A4n95uiEjB9modJ287AQI-z2PEYc4Ees8PAxKHGV7o35XMgA0gBcPsr-TDf1iJk7f8Ro-B4hvRfJS60w0pq-0lYn8CRz-AMDYj0eANSaRk-rxclz8y-tvqmGOI9zI1vyLYciZSHVE919jEW-d1mOcELoEHVmWAMz1RVLQeW3mI5hB1auSe5IW5qWB3fAzbTm0dj1-QcanG6KxhEs9_Nr_Q1AraojTc41npgq3L2Zhh"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white text-black font-bold text-xs rounded-lg uppercase tracking-wider transform translate-y-2 group-hover:translate-y-0 transition-transform">Quick Shop</button>
+</div>
+</div>
+</div>
+</div>
+<!-- END: Masonry Product Grid -->
+</main>
+<!-- END: Hero Section -->
+<!-- BEGIN: Floating Action Buttons -->
+<div class="fixed bottom-8 left-8">
+<button class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all shadow-xl">
+<span class="font-bold">N</span>
+</button>
+</div>
+<!-- END: Floating Action Buttons -->
+</body></html>

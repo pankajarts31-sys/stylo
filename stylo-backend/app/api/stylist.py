@@ -37,7 +37,7 @@ def stylist_chat(body: ChatRequest, settings: SettingsDep) -> ChatResponse:
     """Return a complete AI reply as JSON."""
     _check_api_key(settings)
     try:
-        reply, model_name = chat_with_stylist(body.history, body.message)
+        reply, model_name = chat_with_stylist(body.history, body.message, body.gender)
         return ChatResponse(reply=reply, model=model_name)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
@@ -56,7 +56,7 @@ def stylist_stream(body: ChatRequest, settings: SettingsDep):
 
     def _event_generator():
         try:
-            for chunk in stream_stylist(body.history, body.message):
+            for chunk in stream_stylist(body.history, body.message, body.gender):
                 payload = json.dumps({"delta": chunk})
                 yield f"data: {payload}\n\n"
         except Exception as exc:

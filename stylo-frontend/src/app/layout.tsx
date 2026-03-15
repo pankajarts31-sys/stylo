@@ -28,6 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geist.variable}`}>
+        {/* Fluid gradient background */}
+        <div className="fluid-gradient-bg" aria-hidden="true" />
+
         {/* Decorative floating orbs */}
         <div className="orb orb-1" aria-hidden="true" />
         <div className="orb orb-2" aria-hidden="true" />

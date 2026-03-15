@@ -6,9 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import dynamic from "next/dynamic";
-
-const ClientThemeToggle = dynamic(() => import("./ClientThemeToggle"), { ssr: false });
+import { useGender } from "@/context/GenderContext";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -21,18 +19,22 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  
+  const { gender, setGender } = useGender();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
       <header
         id="main-navbar"
-        className="glass fixed top-0 left-0 right-0 z-50 h-[68px]"
+        className="glass-header"
         style={{
-          borderRadius: "0 0 20px 20px",
-          borderTop: "none",
-          padding: "0 2rem",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          height: "68px",
+          padding: "0 1.5rem",
         }}
       >
         <nav
@@ -41,7 +43,7 @@ export default function Navbar() {
             alignItems: "center",
             justifyContent: "space-between",
             height: "100%",
-            maxWidth: "1200px",
+            maxWidth: "1400px",
             margin: "0 auto",
           }}
         >
@@ -58,18 +60,27 @@ export default function Navbar() {
             <motion.div
               whileHover={{ rotate: 15, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 300 }}
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #e83e8c, #a29bfe)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <Sparkles
-                size={26}
-                style={{
-                  color: "var(--accent-2)",
-                  filter: "drop-shadow(0 0 6px var(--accent-1))",
-                }}
-              />
+              <Sparkles size={18} color="white" />
             </motion.div>
             <span
-              className="font-display gradient-text"
-              style={{ fontSize: "1.5rem", letterSpacing: "0.05em", background: "var(--btn-gradient)", WebkitBackgroundClip: "text" }}
+              className="font-display"
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "#fce4ec",
+              }}
             >
               STYLO
             </span>
@@ -87,29 +98,91 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   style={{
-                    padding: "0.5rem 1.1rem",
+                    padding: "0.45rem 1rem",
                     borderRadius: "50px",
-                    fontSize: "0.9rem",
+                    fontSize: "0.88rem",
                     fontWeight: active ? 600 : 500,
-                    color: active ? "var(--accent-2)" : "var(--fg-secondary)",
-                    background: active ? "rgba(255, 255, 255, 0.15)" : "transparent",
+                    color: active ? "white" : "#d1d5db",
+                    background: active ? "rgba(255, 255, 255, 0.1)" : "transparent",
                     textDecoration: "none",
                     transition: "all 0.2s ease",
-                    border: active ? "1px solid var(--glass-border)" : "1px solid transparent",
+                    position: "relative",
                   }}
                 >
                   {link.label}
+                  {active && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: "60%",
+                        height: "2px",
+                        background: "#e83e8c",
+                        borderRadius: "2px",
+                      }}
+                    />
+                  )}
                 </Link>
               );
             })}
           </div>
 
-          {/* User Actions & Theme Toggle */}
+          {/* Right Controls */}
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            
-            {/* Men / Women Theme Toggle */}
-            <ClientThemeToggle />
+            {/* Gender Switcher */}
+            <div
+              style={{
+                display: "flex",
+                borderRadius: "50px",
+                border: "1px solid rgba(255,255,255,0.1)",
+                overflow: "hidden",
+                background: "rgba(255,255,255,0.05)",
+                padding: "3px",
+              }}
+            >
+              <button
+                onClick={() => setGender("men")}
+                style={{
+                  padding: "0.3rem 0.9rem",
+                  fontSize: "0.75rem",
+                  fontWeight: gender === "men" ? 700 : 500,
+                  border: "none",
+                  cursor: "pointer",
+                  borderRadius: "50px",
+                  background: gender === "men"
+                    ? "linear-gradient(135deg, #38bdf8, #818cf8)"
+                    : "transparent",
+                  color: gender === "men" ? "white" : "#9ca3af",
+                  transition: "all 0.2s ease",
+                  boxShadow: gender === "men" ? "0 2px 10px rgba(56,189,248,0.3)" : "none",
+                }}
+              >
+                Men
+              </button>
+              <button
+                onClick={() => setGender("women")}
+                style={{
+                  padding: "0.3rem 0.9rem",
+                  fontSize: "0.75rem",
+                  fontWeight: gender === "women" ? 700 : 500,
+                  border: "none",
+                  cursor: "pointer",
+                  borderRadius: "50px",
+                  background: gender === "women"
+                    ? "linear-gradient(135deg, #e83e8c, #d63384)"
+                    : "transparent",
+                  color: gender === "women" ? "white" : "#9ca3af",
+                  transition: "all 0.2s ease",
+                  boxShadow: gender === "women" ? "0 2px 10px rgba(232,62,140,0.3)" : "none",
+                }}
+              >
+                Women
+              </button>
+            </div>
 
+            {/* Auth */}
             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
               {user ? (
                 <>
@@ -118,14 +191,14 @@ export default function Navbar() {
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
-                      padding: "0.4rem 1rem",
+                      padding: "0.35rem 0.9rem",
                       borderRadius: "50px",
-                      background: "rgba(255, 255, 255, 0.15)",
-                      border: "1px solid var(--glass-border)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
                     }}
                   >
-                    <User size={15} style={{ color: "var(--accent-2)" }} />
-                    <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--fg-secondary)" }}>
+                    <User size={14} style={{ color: "#e83e8c" }} />
+                    <span style={{ fontSize: "0.82rem", fontWeight: 500, color: "#d1d5db" }}>
                       {user.full_name}
                     </span>
                   </div>
@@ -136,34 +209,53 @@ export default function Navbar() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.4rem",
+                      gap: "0.35rem",
                       background: "transparent",
-                      border: "1.5px solid var(--accent-2)",
+                      border: "1px solid rgba(255,255,255,0.1)",
                       borderRadius: "50px",
-                      padding: "0.45rem 1rem",
+                      padding: "0.35rem 0.9rem",
                       cursor: "pointer",
-                      color: "var(--fg-secondary)",
-                      fontSize: "0.85rem",
+                      color: "#d1d5db",
+                      fontSize: "0.82rem",
                       fontWeight: 500,
                     }}
                   >
-                    <LogOut size={14} />
+                    <LogOut size={13} />
                     Sign out
                   </motion.button>
                 </>
               ) : (
                 <>
                   <Link href="/auth/login">
-                    <button className="btn-ghost" style={{ fontSize: "0.875rem", padding: "0.5rem 1.4rem" }}>
+                    <button
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#d1d5db",
+                        fontSize: "0.88rem",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        padding: "0.4rem 0.75rem",
+                      }}
+                    >
                       Log in
                     </button>
                   </Link>
                   <Link href="/auth/signup">
                     <motion.button
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      className="btn-primary"
-                      style={{ fontSize: "0.875rem", padding: "0.5rem 1.4rem" }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      style={{
+                        padding: "0.5rem 1.25rem",
+                        borderRadius: "50px",
+                        background: "linear-gradient(135deg, #a29bfe, #e83e8c)",
+                        color: "white",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        border: "none",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 15px rgba(162,155,254,0.4)",
+                      }}
                     >
                       Get Started
                     </motion.button>
@@ -176,14 +268,13 @@ export default function Navbar() {
             <button
               id="mobile-menu-btn"
               onClick={() => setMenuOpen((o) => !o)}
+              className="show-mobile"
               style={{
-                display: "none",
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
-                color: "var(--fg-secondary)",
+                color: "#d1d5db",
               }}
-              className="show-mobile"
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -222,9 +313,9 @@ export default function Navbar() {
                 style={{
                   padding: "0.75rem 1rem",
                   borderRadius: "12px",
-                  color: pathname === link.href ? "#9b59b6" : "var(--fg-secondary)",
+                  color: pathname === link.href ? "#e83e8c" : "#d1d5db",
                   fontWeight: pathname === link.href ? 600 : 500,
-                  background: pathname === link.href ? "rgba(201,184,245,0.15)" : "transparent",
+                  background: pathname === link.href ? "rgba(232,62,140,0.1)" : "transparent",
                   textDecoration: "none",
                   fontSize: "0.95rem",
                 }}

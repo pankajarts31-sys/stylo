@@ -3,9 +3,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, ArrowUpDown, Zap, TrendingDown, RefreshCw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import Masonry from "react-masonry-css";
 import DealCard from "@/components/DealCard";
 import PremiumSearchBar from "@/components/PremiumSearchBar";
+import { useGender } from "@/context/GenderContext";
 import { DEAL_CATEGORIES, type DealCategory } from "@/data/dealsData";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -55,13 +57,22 @@ const STAT_CARDS = [
 ];
 
 export default function DealsContent() {
+  const searchParams = useSearchParams();
+  const { queryPrefix } = useGender();
+  const initialQuery = searchParams.get("q") ?? "";
   const [category, setCategory] = useState<DealCategory>("All");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialQuery);
   const [sort, setSort] = useState<SortOption>("savings");
   const [sortOpen, setSortOpen] = useState(false);
   const [dealsData, setDealsData] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync search when URL ?q= changes (e.g. navigated from Best Deal button)
+  useEffect(() => {
+    const q = searchParams.get("q") ?? "";
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   // Fetch deals from API whenever search/category changes
   useEffect(() => {
@@ -69,7 +80,8 @@ export default function DealsContent() {
       setLoading(true);
       setError(null);
       try {
-        const query = search.trim() || "trending fashion";
+        const baseQuery = search.trim() || "trending fashion";
+        const query = `${queryPrefix}${baseQuery}`;
         const catParam = category !== "All" ? `&category=${encodeURIComponent(category)}` : "";
         const res = await fetch(`${API}/api/deals?q=${encodeURIComponent(query)}${catParam}`);
 
@@ -95,7 +107,7 @@ export default function DealsContent() {
 
     const debounce = setTimeout(() => fetchDeals(), 500);
     return () => clearTimeout(debounce);
-  }, [search, category]);
+  }, [search, category, queryPrefix]);
 
   // Client-side sort
   const filtered = useMemo(() => {

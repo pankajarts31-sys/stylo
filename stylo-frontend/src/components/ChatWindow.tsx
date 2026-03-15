@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Send, Sparkles, RotateCcw, Mic, Camera } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import VisualSearch from "./VisualSearch";
+import { useGender, type Gender } from "@/context/GenderContext";
 
 interface SpeechRecognitionResultEntry { transcript: string }
 interface SpeechRecognitionResult {
@@ -25,22 +26,39 @@ export interface Message {
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-const WELCOME: Message = {
-  id: "welcome",
-  role: "model",
-  content:
-    "Hey there, gorgeous! ✦ I'm STYLO, your personal AI fashion stylist.\n\nTell me about an occasion you're dressing for, or ask me anything — from what to wear to a garden party to how to style wide-leg trousers. I'm all yours! 💜\n\nWhat's on your style agenda today?",
+const WELCOME_MSG: Record<Gender, string> = {
+  women:
+    "Hey there! ✦ I'm STYLO, your personal AI fashion stylist for women.\n\nTell me about an occasion you're dressing for — from sarees & lehengas to party dresses & office outfits. I'm here to help you slay! 💜\n\nWhat's on your style agenda today?",
+  men:
+    "Hey bro! ✦ I'm STYLO, your personal AI fashion stylist for men.\n\nTell me about an occasion you're dressing for — from kurtas & sherwanis to streetwear & formal fits. Let's get your style on point! 🔥\n\nWhat's on your style agenda today?",
 };
 
-const SUGGESTIONS = [
-  "What should I wear to a summer rooftop dinner?",
-  "How do I style an oversized blazer?",
-  "Give me a capsule wardrobe for autumn 🍂",
-  "What colours suit a warm skin tone?",
-];
+const SUGGESTIONS: Record<Gender, string[]> = {
+  women: [
+    "What should I wear to a summer rooftop dinner?",
+    "How do I style an oversized blazer?",
+    "Best lehenga styles for a friend's sangeet?",
+    "Suggest a capsule wardrobe for office wear 👜",
+  ],
+  men: [
+    "What should I wear to a casual beach party?",
+    "How do I style a kurta for a wedding?",
+    "Best streetwear looks for college? 🔥",
+    "Suggest a formal outfit for a job interview 👔",
+  ],
+};
+
+function makeWelcome(gender: Gender): Message {
+  return {
+    id: "welcome",
+    role: "model",
+    content: WELCOME_MSG[gender],
+  };
+}
 
 export default function ChatWindow() {
-  const [messages, setMessages] = useState<Message[]>([WELCOME]);
+  const { gender } = useGender();
+  const [messages, setMessages] = useState<Message[]>([makeWelcome(gender)]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -48,6 +66,18 @@ export default function ChatWindow() {
   const abortRef = useRef<AbortController | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [visualSearchOpen, setVisualSearchOpen] = useState(false);
+  const prevGenderRef = useRef(gender);
+
+  // Reset chat when gender toggles
+  useEffect(() => {
+    if (prevGenderRef.current !== gender) {
+      prevGenderRef.current = gender;
+      abortRef.current?.abort();
+      setMessages([makeWelcome(gender)]);
+      setIsStreaming(false);
+      setInput("");
+    }
+  }, [gender]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -93,7 +123,7 @@ export default function ChatWindow() {
         const res = await fetch(`${BACKEND}/api/stylist/stream`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text.trim(), history }),
+          body: JSON.stringify({ message: text.trim(), history, gender }),
           signal: abortRef.current.signal,
         });
 
@@ -160,7 +190,7 @@ export default function ChatWindow() {
         setIsStreaming(false);
       }
     },
-    [isStreaming, messages]
+    [isStreaming, messages, gender]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -172,7 +202,7 @@ export default function ChatWindow() {
 
   const reset = () => {
     abortRef.current?.abort();
-    setMessages([WELCOME]);
+    setMessages([makeWelcome(gender)]);
     setIsStreaming(false);
     setInput("");
   };
@@ -319,7 +349,7 @@ export default function ChatWindow() {
             flexShrink: 0,
           }}
         >
-          {SUGGESTIONS.map((s) => (
+          {SUGGESTIONS[gender].map((s) => (
             <button
               key={s}
               onClick={() => sendMessage(s)}

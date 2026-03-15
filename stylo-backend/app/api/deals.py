@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import random
 import re
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from serpapi import GoogleSearch
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["deals"])
@@ -127,7 +128,7 @@ def get_deals(
     q: str = Query("trending fashion india", description="Search query"),
     category: Optional[str] = Query(None, description="Optional category filter"),
 ) -> dict:
-    api_key = os.environ.get("SERPAPI_KEY", "")
+    api_key = settings.serpapi_key
     if not api_key:
         raise HTTPException(status_code=500, detail="SERPAPI_KEY is not configured.")
 

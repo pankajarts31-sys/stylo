@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>STYLO - Your Virtual Fashion Universe</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts for Typography -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Playfair+Display:ital,wght@0,700;1,700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              plum: '#4A1D4A',
+              rose: '#E83E8C',
+              lavender: '#A29BFE',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          animation: {
+            'marquee': 'marquee 25s linear infinite',
+            'marquee-reverse': 'marquee-reverse 30s linear infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' },
+            },
+            'marquee-reverse': {
+              '0%': { transform: 'translateX(-50%)' },
+              '100%': { transform: 'translateX(0%)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-gradients">
+    body {
+      background: radial-gradient(circle at 20% 20%, #2D1B33 0%, #0F0C29 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: white;
+    }
+
+    .fluid-gradient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: 
+        radial-gradient(circle at 80% 20%, rgba(232, 62, 140, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 10% 80%, rgba(162, 155, 254, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(74, 29, 74, 0.1) 0%, transparent 50%);
+      filter: blur(80px);
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .text-glow {
+      text-shadow: 0 0 20px rgba(232, 62, 140, 0.5);
+    }
+
+    .gradient-text {
+      background: linear-gradient(to right, #E83E8C, #A29BFE, #FFA07A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .marquee-text {
+      font-size: 8rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      white-space: nowrap;
+      opacity: 0.05;
+      user-select: none;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="antialiased">
+<!-- Background Layer -->
+<div class="fluid-gradient-bg"></div>
+<!-- BEGIN: Marquee Background Layers -->
+<div class="fixed inset-0 flex flex-col justify-around py-20 overflow-hidden z-0 pointer-events-none" data-purpose="background-marquee">
+<div class="flex animate-marquee">
+<span class="marquee-text pr-20">SMART STYLE • TREND DISCOVERY • BEST DEALS • AI STYLIST •</span>
+<span class="marquee-text pr-20">SMART STYLE • TREND DISCOVERY • BEST DEALS • AI STYLIST •</span>
+</div>
+<div class="flex animate-marquee-reverse">
+<span class="marquee-text pr-20">AI OUTFIT ADVICE • VIRTUAL CLOSET • LUXURY FASHION •</span>
+<span class="marquee-text pr-20">AI OUTFIT ADVICE • VIRTUAL CLOSET • LUXURY FASHION •</span>
+</div>
+<div class="flex animate-marquee">
+<span class="marquee-text pr-20">YOUR PERSONAL STYLIST • 2024 TRENDS • SHOP THE LOOK •</span>
+<span class="marquee-text pr-20">YOUR PERSONAL STYLIST • 2024 TRENDS • SHOP THE LOOK •</span>
+</div>
+</div>
+<!-- END: Marquee Background Layers -->
+<!-- BEGIN: Navigation Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 px-6 py-4" data-purpose="main-navigation">
+<nav class="max-w-7xl mx-auto flex items-center justify-between glass px-6 py-3 rounded-full">
+<!-- Logo -->
+<div class="flex items-center space-x-2">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-rose to-brand-lavender flex items-center justify-center">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-xl font-bold tracking-tighter uppercase">STYLO</span>
+</div>
+<!-- Center Links -->
+<div class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-300">
+<a class="text-white bg-white/10 px-4 py-1.5 rounded-full" href="#">Home</a>
+<a class="hover:text-white transition-colors" href="#">AI Stylist</a>
+<a class="hover:text-white transition-colors" href="#">Trending</a>
+<a class="hover:text-white transition-colors" href="#">Deals</a>
+<a class="hover:text-white transition-colors" href="#">Saved</a>
+</div>
+<!-- Right Controls -->
+<div class="flex items-center space-x-6">
+<!-- Gender Switcher -->
+<div class="hidden sm:flex items-center bg-white/5 p-1 rounded-full border border-white/10">
+<button class="px-4 py-1 text-xs rounded-full text-gray-400">Men</button>
+<button class="px-4 py-1 text-xs rounded-full bg-brand-rose text-white shadow-lg shadow-brand-rose/20">Women</button>
+</div>
+<div class="flex items-center space-x-4">
+<a class="text-sm font-medium hover:text-white" href="#">Log in</a>
+<button class="px-5 py-2 rounded-full bg-white text-brand-plum font-semibold text-sm hover:bg-gray-100 transition-all shadow-xl shadow-white/5">
+            Get Started
+          </button>
+</div>
+</div>
+</nav>
+</header>
+<!-- END: Navigation Bar -->
+<!-- BEGIN: Hero Section -->
+<main class="relative z-10 pt-40 pb-20 px-6 overflow-hidden" data-purpose="hero-section">
+<div class="max-w-5xl mx-auto text-center">
+<!-- Subtitle Label -->
+<div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass border-brand-rose/20 text-xs font-semibold uppercase tracking-widest text-brand-lavender mb-12 shadow-inner" data-purpose="hero-label">
+<span class="text-brand-rose">✦</span>
+<span>Your Virtual Fashion Universe</span>
+</div>
+<!-- Main Heading -->
+<h1 class="text-6xl md:text-8xl font-bold tracking-tight mb-8 leading-[1.1]" data-purpose="hero-title">
+        Style Has Never Been<br/>
+<span class="font-serif italic font-bold gradient-text text-glow block mt-4">This Smart</span>
+</h1>
+<!-- Description -->
+<p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-400 mb-12 leading-relaxed" data-purpose="hero-description">
+        STYLO combines AI outfit advice, trending fashion discovery, and cross-platform deal hunting into one beautifully curated experience.
+      </p>
+<!-- CTA Buttons -->
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24" data-purpose="hero-ctas">
+<button class="group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-rose to-brand-plum text-white font-bold text-lg shadow-2xl shadow-brand-rose/30 transition-all hover:scale-105 active:scale-95 flex items-center">
+<svg class="w-6 h-6 mr-3 text-white/80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Meet Your Stylist
+        </button>
+<button class="px-8 py-4 rounded-2xl glass font-bold text-lg text-white hover:bg-white/10 transition-all active:scale-95 border-white/20 flex items-center">
+          Get Started Free
+          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Stats / Pills Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto" data-purpose="hero-stats">
+<!-- Stat 1 -->
+<div class="glass p-6 rounded-[2rem] animate-float" style="animation-delay: 0s;">
+<h4 class="text-4xl font-bold mb-1">50K+</h4>
+<p class="text-xs uppercase tracking-widest text-gray-500 font-semibold">Outfits styled</p>
+</div>
+<!-- Stat 2 -->
+<div class="glass p-6 rounded-[2rem] animate-float" style="animation-delay: 1s;">
+<h4 class="text-4xl font-bold mb-1">20+</h4>
+<p class="text-xs uppercase tracking-widest text-gray-500 font-semibold">Stores tracked</p>
+</div>
+<!-- Stat 3 -->
+<div class="glass p-6 rounded-[2rem] animate-float" style="animation-delay: 2s;">
+<h4 class="text-4xl font-bold mb-1 uppercase">AI</h4>
+<p class="text-xs uppercase tracking-widest text-gray-500 font-semibold">Powered by Gemini</p>
+</div>
+</div>
+</div>
+</main>
+<!-- END: Hero Section -->
+<!-- BEGIN: Interactive Elements (Floating UI simulation) -->
+<div class="fixed top-1/2 -left-20 w-64 h-64 bg-brand-rose/10 rounded-full blur-[100px] pointer-events-none"></div>
+<div class="fixed bottom-1/4 -right-20 w-80 h-80 bg-brand-lavender/10 rounded-full blur-[120px] pointer-events-none"></div>
+<!-- END: Interactive Elements -->
+<!-- BEGIN: Bottom Interaction Node -->
+<div class="fixed bottom-6 left-6 z-50">
+<button class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-2xl hover:bg-zinc-800 transition-colors">
+<span class="text-white font-bold">N</span>
+</button>
+</div>
+<!-- END: Bottom Interaction Node -->
+</body></html>
