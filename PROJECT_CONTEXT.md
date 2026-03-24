@@ -317,4 +317,4 @@ APP_ENV=development
 | Date | Change |
 |------|--------|
 | 2026-03-15 | Initial creation of PROJECT_CONTEXT.md — full project analysis and documentation |
-| 2026-03-24 | Added `socket.getaddrinfo` patch in `true_main.py` to force IPv4 requests. This fixes API connection hanging (Gemini/SerpApi) when using Jio mobile data / IPv6 networks. |
+| 2026-03-24 | Added `socket.getaddrinfo` IPv4 patch in `true_main.py` — only active in local dev (`APP_ENV != production`). Fixes Jio data hanging on Gemini/SerpApi. On Railway (production) the patch is skipped to avoid Docker IPv6 issues. |

@@ -5,14 +5,18 @@ if _env_path.exists():
     from dotenv import load_dotenv
     load_dotenv(_env_path)  # Local dev only — Railway injects env vars natively
 
-# FIX FOR JIO NETWORK: Force IPv4 resolution for all outgoing requests
+# FIX FOR JIO NETWORK (local dev only): Force IPv4 resolution for outgoing requests.
 # Jio's IPv6 routing often hangs when connecting to Google APIs or SerpApi.
-import socket
-old_getaddrinfo = socket.getaddrinfo
-def new_getaddrinfo(*args, **kwargs):
-    responses = old_getaddrinfo(*args, **kwargs)
-    return [response for response in responses if response[0] == socket.AF_INET]
-socket.getaddrinfo = new_getaddrinfo
+# On Railway/production this patch is SKIPPED because Docker may use IPv6 internally.
+import socket as _socket
+_app_env = _os.environ.get("APP_ENV", "development")
+if _app_env != "production":
+    _old_getaddrinfo = _socket.getaddrinfo
+    def _patched_getaddrinfo(*args, **kwargs):
+        responses = _old_getaddrinfo(*args, **kwargs)
+        ipv4_only = [r for r in responses if r[0] == _socket.AF_INET]
+        return ipv4_only if ipv4_only else responses  # fallback if no IPv4
+    _socket.getaddrinfo = _patched_getaddrinfo
 
 import logging
 from contextlib import asynccontextmanager
