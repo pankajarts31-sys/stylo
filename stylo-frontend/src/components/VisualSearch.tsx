@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { useState, useRef, useEffect, ChangeEvent, DragEvent } from "react";
 import { motion } from "framer-motion";
 import { Camera, Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
-import heic2any from "heic2any";
+// heic2any is imported dynamically to avoid SSR "window is not defined" errors
 import FeedCard from "@/components/FeedCard";
 import { getApiBase } from "@/lib/api";
 import type { FeedItem } from "@/data/feedData";
@@ -22,9 +22,25 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<FeedItem[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const supportedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+  // Detect mobile device (phone/tablet) vs desktop/laptop
+  useEffect(() => {
+    const checkMobile = () => {
+      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      const narrowScreen = window.matchMedia("(max-width: 768px)").matches;
+      const mobileUA = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+      setIsMobile((hasTouch && narrowScreen) || mobileUA);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const isHeic = (f: File) =>
     f.type === "image/heic" ||
@@ -33,9 +49,41 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
     f.name.toLowerCase().endsWith(".heif");
 
   const convertHeicToJpeg = async (f: File) => {
+    const heic2any = (await import("heic2any")).default;
     const blob = (await heic2any({ blob: f, toType: "image/jpeg", quality: 0.9 })) as Blob;
     const jpgName = f.name.replace(/\.(heic|heif)$/i, ".jpg");
     return new File([blob], jpgName, { type: "image/jpeg" });
+  };
+
+  const convertToJpeg = async (f: File) => {
+    const objectUrl = URL.createObjectURL(f);
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      const loaded = new Promise<HTMLImageElement>((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Image decode failed"));
+      });
+      img.src = objectUrl;
+      const decoded = await loaded;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = decoded.naturalWidth || decoded.width;
+      canvas.height = decoded.naturalHeight || decoded.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas unavailable");
+      ctx.drawImage(decoded, 0, 0);
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Convert failed"))), "image/jpeg", 0.9);
+      });
+
+      const baseName = f.name.replace(/\.[^.]+$/, "");
+      const safeName = baseName ? `${baseName}.jpg` : "upload.jpg";
+      return new File([blob], safeName, { type: "image/jpeg" });
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
   };
 
   const handleDrag = (e: DragEvent) => {
@@ -69,11 +117,6 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
   };
 
   const processFile = async (f: File) => {
-    if (!f.type.startsWith("image/")) {
-      setError("Please upload an image file (JPEG, PNG, WebP).");
-      return;
-    }
-
     let uploadFile = f;
     if (isHeic(f)) {
       try {
@@ -85,8 +128,12 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
     }
 
     if (!supportedTypes.has(uploadFile.type)) {
-      setError("Unsupported file type. Please upload a JPEG, PNG, or WebP image.");
-      return;
+      try {
+        uploadFile = await convertToJpeg(uploadFile);
+      } catch {
+        setError("Unsupported image type. Please upload a JPEG, PNG, or WebP image.");
+        return;
+      }
     }
 
     setFile(uploadFile);
@@ -180,29 +227,9 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
         <div style={{ padding: "1.5rem", overflowY: "auto", flex: 1 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             
-            {/* Upload Area */}
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => inputRef.current?.click()}
-              style={{
-                border: `2px dashed ${dragActive ? "#9b59b6" : "rgba(155,89,182,0.3)"}`,
-                borderRadius: "16px",
-                background: dragActive ? "rgba(155,89,182,0.05)" : "rgba(255,255,255,0.5)",
-                padding: preview ? "1rem" : "3rem 1rem",
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                display: "flex",
-                flexDirection: preview ? "row" : "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1rem"
-              }}
-            >
-              <input ref={inputRef} type="file" accept="image/*,.heic,.heif" onChange={handleChange} style={{ display: "none" }} />
+            {/* Hidden file inputs */}
+            <input ref={inputRef} type="file" accept="image/*,.heic,.heif" onChange={handleChange} style={{ display: "none" }} />
+            {isMobile && (
               <input
                 ref={cameraInputRef}
                 type="file"
@@ -211,7 +238,30 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
                 onChange={handleChange}
                 style={{ display: "none" }}
               />
-              
+            )}
+
+            {/* Upload Area */}
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={!isMobile && !preview ? () => inputRef.current?.click() : undefined}
+              style={{
+                border: `2px dashed ${dragActive ? "#9b59b6" : "rgba(155,89,182,0.3)"}`,
+                borderRadius: "16px",
+                background: dragActive ? "rgba(155,89,182,0.05)" : "rgba(255,255,255,0.5)",
+                padding: preview ? "1rem" : "3rem 1rem",
+                textAlign: "center",
+                cursor: !isMobile && !preview ? "pointer" : "default",
+                transition: "all 0.2s ease",
+                display: "flex",
+                flexDirection: preview ? "row" : "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "1rem"
+              }}
+            >
               {preview ? (
                 <>
                   <div style={{ width: "80px", height: "80px", borderRadius: "12px", overflow: "hidden", flexShrink: 0 }}>
@@ -220,46 +270,99 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
                   </div>
                   <div style={{ textAlign: "left", flex: 1 }}>
                     <p style={{ fontWeight: 500, color: "var(--fg-primary)", marginBottom: "0.25rem" }}>{file?.name}</p>
-                    <p style={{ fontSize: "0.85rem", color: "var(--fg-muted)" }}>Click or drag a new image to replace</p>
+                    <p style={{ fontSize: "0.85rem", color: "var(--fg-muted)" }}>
+                      {isMobile ? "Tap below to replace" : "Click or drag a new image to replace"}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+                      style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.1)", background: "transparent", cursor: "pointer", color: "var(--fg-secondary)" }}
+                      title="Upload from Device"
+                    >
+                      <Upload size={18} />
+                    </button>
+                    {isMobile && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openCamera(); }}
+                        style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.1)", background: "transparent", cursor: "pointer", color: "var(--fg-secondary)" }}
+                        title="Use Camera"
+                      >
+                        <Camera size={18} />
+                      </button>
+                    )}
                   </div>
                 </>
               ) : (
                 <>
                   <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "rgba(155,89,182,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#9b59b6", marginBottom: "0.5rem" }}>
-                    <Upload size={28} />
+                    {isMobile ? <ImageIcon size={28} /> : <Upload size={28} />}
                   </div>
                   <div>
                     <p style={{ fontWeight: 600, color: "var(--fg-primary)", fontSize: "1.05rem", marginBottom: "0.25rem" }}>
-                      Upload an image to find similar looks
+                      {isMobile ? "Find similar styles" : "Upload an image to find similar looks"}
                     </p>
-                    <p style={{ color: "var(--fg-muted)", fontSize: "0.9rem" }}>
-                      Drag & drop a photo, or click to browse
+                    <p style={{ color: "var(--fg-muted)", fontSize: "0.9rem", marginBottom: isMobile ? "1rem" : "0" }}>
+                      {isMobile
+                        ? "Upload an image or take a photo to search"
+                        : "Drag & drop a photo, or click to browse"}
                     </p>
-                    <div style={{ marginTop: "0.75rem" }}>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openCamera();
-                        }}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.4rem",
-                          padding: "0.45rem 0.9rem",
-                          borderRadius: "999px",
-                          border: "1px solid rgba(155,89,182,0.25)",
-                          background: "rgba(155,89,182,0.08)",
-                          color: "#7a3ea1",
-                          fontWeight: 600,
-                          fontSize: "0.85rem",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Camera size={16} />
-                        Use camera
-                      </button>
-                    </div>
+
+                    {/* MOBILE: Two distinct buttons */}
+                    {isMobile && (
+                      <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            inputRef.current?.click();
+                          }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            padding: "0.6rem 1.2rem",
+                            borderRadius: "999px",
+                            border: "1px solid rgba(155,89,182,0.25)",
+                            background: "rgba(155,89,182,0.05)",
+                            color: "var(--fg-primary)",
+                            fontWeight: 500,
+                            fontSize: "0.9rem",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Upload size={18} className="text-purple" />
+                          Upload from Device
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCamera();
+                          }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            padding: "0.6rem 1.2rem",
+                            borderRadius: "999px",
+                            border: "none",
+                            background: "#9b59b6",
+                            color: "white",
+                            boxShadow: "0 4px 14px rgba(155,89,182,0.3)",
+                            fontWeight: 500,
+                            fontSize: "0.9rem",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Camera size={18} />
+                          Use Camera
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

@@ -29,7 +29,7 @@ The frontend is a glassmorphism-styled, Pinterest-inspired masonry layout with s
 | Server       | **Uvicorn** 0.29                     |
 | AI/LLM       | **Google Gemini 2.5 Flash** via `google-genai` SDK |
 | Shopping Data| **SerpApi** (Google Shopping engine)  |
-| Database     | **SQLite** (local dev) / **PostgreSQL** (Railway prod) |
+| Database     | **SQLite** (local dev) / **PostgreSQL** (Prod) |
 | ORM          | **SQLAlchemy** 2.0                   |
 | Auth         | **JWT** (python-jose) + **bcrypt** (passlib) |
 | Validation   | **Pydantic** 2.6 + pydantic-settings |
@@ -52,7 +52,7 @@ The frontend is a glassmorphism-styled, Pinterest-inspired masonry layout with s
 ### Deployment
 | Target       | Service                              |
 |-------------|---------------------------------------|
-| Backend      | **Railway** (PostgreSQL + Uvicorn)   |
+| Backend      | **Hugging Face** (Manually deployed)   |
 | Frontend     | **Vercel**                           |
 | Domain       | `stylo-zeta.vercel.app` (frontend)   |
 
@@ -187,8 +187,14 @@ stylo/
 
 ### 4. Visual Search
 - Upload JPEG/PNG/WebP image (drag & drop or file picker)
-- Mobile camera capture supported (uses device camera)
-- HEIC/HEIF images are converted to JPEG client-side for compatibility
+- **Responsive UI** — adapts to device type:
+  - **Desktop/Laptop**: Classic drag-and-drop upload area, click anywhere to browse files. No camera button shown.
+  - **Mobile/Phone**: Two distinct buttons — "Upload from Device" (gallery picker) and "Use Camera" (native camera). Prevents touch conflicts.
+  - Detection uses `matchMedia(max-width: 768px)` + touch support + user agent check.
+- Cross-platform image format support:
+  - Relaxed MIME type validation — handles missing/invalid MIME types from mobile OSs (e.g., `application/octet-stream`).
+  - All non-JPEG/PNG/WebP images are auto-converted to JPEG client-side via canvas.
+  - HEIC/HEIF images converted via `heic2any` (dynamically imported to avoid SSR errors).
 - Backend sends image to Gemini 2.5 Flash which generates a specific e-commerce search query
 - Query is then passed to SerpApi to find matching products with real prices and buy links
 - Results displayed as FeedCards in modal or injected into feed
@@ -302,7 +308,7 @@ APP_ENV=development
 - **Always use the venv Python** to start the backend — system Python won't have `pydantic_settings` installed.
 - The SQLite database (`stylo.db`) is auto-created on first run.
 - Frontend communicates with backend via `NEXT_PUBLIC_API_URL` env var (defaults to `http://localhost:8000`).
-- In production, frontend uses same-origin `/api` calls and Next.js rewrites to proxy requests to Railway.
+- In production, frontend uses same-origin `/api` calls and Next.js rewrites to proxy requests to Hugging Face.
 - CORS is configured for `localhost:3000`, `localhost:8000`, and `*.vercel.app`.
 
 ---
@@ -327,3 +333,5 @@ APP_ENV=development
 | 2026-03-24 | Added `socket.getaddrinfo` IPv4 patch in `true_main.py` — only active in local dev (`APP_ENV != production`). Fixes Jio data hanging on Gemini/SerpApi. On Railway (production) the patch is skipped to avoid Docker IPv6 issues. |
 | 2026-03-28 | Tested and verified the AI Fashion Stylist end-to-end functionality. Confirmed that the SSE streaming works perfectly and backend services communicate continuously without interruptions. |
 | 2026-04-12 | Added same-origin API routing via Next.js rewrites, centralized API base helper, and HEIC/HEIF + camera capture support for visual search on mobile. |
+| 2026-04-12 | Updated deployment documentation: Backend moved from Railway to manual deployment on Hugging Face. |
+| 2026-04-12 | Fixed Visual Search on Mobile. **Problem:** (1) Phones passed generic MIME types (`application/octet-stream`) which blocked uploads via strict `image/` pattern checks. (2) Nested click handlers caused touch conflicts on mobile. (3) Camera button was showing on desktop where it's not needed. (4) `heic2any` import crashed SSR with "window is not defined". **Solution:** (1) Relaxed MIME validation — delegate to browser canvas rendering. (2) Separated modal into distinct "Upload from Device" and "Use Camera" buttons for mobile, classic drag-and-drop for desktop. (3) Added `isMobile` detection (`matchMedia` + touch + UA) — Camera button and two-button UI only render on mobile; Desktop gets clickable drag-and-drop area only. (4) Changed `heic2any` to dynamic `import()` inside the conversion function to avoid SSR crash. |
