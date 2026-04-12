@@ -10,8 +10,9 @@ import FilterBar from "@/components/FilterBar";
 import PremiumSearchBar from "@/components/PremiumSearchBar";
 import { useGender } from "@/context/GenderContext";
 import type { FeedItem, FeedCategory } from "@/data/feedData";
+import { getApiBase } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = getApiBase();
 const PAGE_SIZE = 6;
 
 type SortOption = "trending" | "newest" | "price-asc" | "price-desc" | "popular";

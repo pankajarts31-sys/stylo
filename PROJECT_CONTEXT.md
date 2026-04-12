@@ -44,6 +44,7 @@ The frontend is a glassmorphism-styled, Pinterest-inspired masonry layout with s
 | Animations   | **Framer Motion** 12                 |
 | Icons        | **Lucide React**                     |
 | Grid Layout  | **react-masonry-css** (Pinterest-style) |
+| Media Utils  | **heic2any** (HEIC/HEIF to JPEG)     |
 | State        | React Context (Auth, Theme, Gender) + **Zustand** (available) |
 | HTTP         | **Axios** (available) + native `fetch` |
 | Styling      | Glassmorphism theme, CSS custom properties, Geist font |
@@ -148,6 +149,9 @@ stylo/
 │       └── data/                  # Type definitions & mock/fallback data
 │           ├── feedData.ts        # FeedItem interface, FeedCategory type, mock items
 │           └── dealsData.ts       # DealItem/StorePrice interfaces, DealCategory, mock deals
+│
+│       └── lib/
+│           └── api.ts             # Centralized API base + same-origin routing helper
 ```
 
 ---
@@ -183,6 +187,8 @@ stylo/
 
 ### 4. Visual Search
 - Upload JPEG/PNG/WebP image (drag & drop or file picker)
+- Mobile camera capture supported (uses device camera)
+- HEIC/HEIF images are converted to JPEG client-side for compatibility
 - Backend sends image to Gemini 2.5 Flash which generates a specific e-commerce search query
 - Query is then passed to SerpApi to find matching products with real prices and buy links
 - Results displayed as FeedCards in modal or injected into feed
@@ -296,6 +302,7 @@ APP_ENV=development
 - **Always use the venv Python** to start the backend — system Python won't have `pydantic_settings` installed.
 - The SQLite database (`stylo.db`) is auto-created on first run.
 - Frontend communicates with backend via `NEXT_PUBLIC_API_URL` env var (defaults to `http://localhost:8000`).
+- In production, frontend uses same-origin `/api` calls and Next.js rewrites to proxy requests to Railway.
 - CORS is configured for `localhost:3000`, `localhost:8000`, and `*.vercel.app`.
 
 ---
@@ -319,3 +326,4 @@ APP_ENV=development
 | 2026-03-15 | Initial creation of PROJECT_CONTEXT.md — full project analysis and documentation |
 | 2026-03-24 | Added `socket.getaddrinfo` IPv4 patch in `true_main.py` — only active in local dev (`APP_ENV != production`). Fixes Jio data hanging on Gemini/SerpApi. On Railway (production) the patch is skipped to avoid Docker IPv6 issues. |
 | 2026-03-28 | Tested and verified the AI Fashion Stylist end-to-end functionality. Confirmed that the SSE streaming works perfectly and backend services communicate continuously without interruptions. |
+| 2026-04-12 | Added same-origin API routing via Next.js rewrites, centralized API base helper, and HEIC/HEIF + camera capture support for visual search on mobile. |

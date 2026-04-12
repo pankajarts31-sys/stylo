@@ -9,8 +9,9 @@ import DealCard from "@/components/DealCard";
 import PremiumSearchBar from "@/components/PremiumSearchBar";
 import { useGender } from "@/context/GenderContext";
 import { DEAL_CATEGORIES, type DealCategory } from "@/data/dealsData";
+import { getApiBase } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = getApiBase();
 
 interface DealStore {
   store: string;

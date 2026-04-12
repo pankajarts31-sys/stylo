@@ -5,6 +5,7 @@ import { Heart, Bookmark, ShoppingBag, Store } from "lucide-react";
 import { useState } from "react";
 
 import { useAuth } from "@/context/AuthContext";
+import { getApiBase } from "@/lib/api";
 import type { FeedItem } from "@/data/feedData";
 
 interface FeedCardProps {
@@ -13,7 +14,7 @@ interface FeedCardProps {
   onSelect?: (item: FeedItem) => void;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = getApiBase();
 
 export default function FeedCard({ item, index, onSelect }: FeedCardProps) {
   const [liked, setLiked]             = useState(false);

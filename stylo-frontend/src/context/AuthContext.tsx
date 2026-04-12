@@ -8,8 +8,9 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { getApiBase } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = getApiBase();
 const TOKEN_KEY = "stylo_jwt";
 
 export interface User {

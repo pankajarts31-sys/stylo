@@ -3,10 +3,12 @@
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { motion } from "framer-motion";
 import { Camera, Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
+import heic2any from "heic2any";
 import FeedCard from "@/components/FeedCard";
+import { getApiBase } from "@/lib/api";
 import type { FeedItem } from "@/data/feedData";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = getApiBase();
 
 interface VisualSearchProps {
   onClose: () => void;
@@ -21,6 +23,20 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<FeedItem[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const supportedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+  const isHeic = (f: File) =>
+    f.type === "image/heic" ||
+    f.type === "image/heif" ||
+    f.name.toLowerCase().endsWith(".heic") ||
+    f.name.toLowerCase().endsWith(".heif");
+
+  const convertHeicToJpeg = async (f: File) => {
+    const blob = (await heic2any({ blob: f, toType: "image/jpeg", quality: 0.9 })) as Blob;
+    const jpgName = f.name.replace(/\.(heic|heif)$/i, ".jpg");
+    return new File([blob], jpgName, { type: "image/jpeg" });
+  };
 
   const handleDrag = (e: DragEvent) => {
     e.preventDefault();
@@ -48,20 +64,40 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
     }
   };
 
+  const openCamera = () => {
+    cameraInputRef.current?.click();
+  };
+
   const processFile = async (f: File) => {
     if (!f.type.startsWith("image/")) {
       setError("Please upload an image file (JPEG, PNG, WebP).");
       return;
     }
-    setFile(f);
+
+    let uploadFile = f;
+    if (isHeic(f)) {
+      try {
+        uploadFile = await convertHeicToJpeg(f);
+      } catch {
+        setError("Could not convert HEIC image. Please upload a JPEG, PNG, or WebP file.");
+        return;
+      }
+    }
+
+    if (!supportedTypes.has(uploadFile.type)) {
+      setError("Unsupported file type. Please upload a JPEG, PNG, or WebP image.");
+      return;
+    }
+
+    setFile(uploadFile);
     // Revoke the old object URL to prevent memory leaks
     if (preview) {
       URL.revokeObjectURL(preview);
     }
-    setPreview(URL.createObjectURL(f));
+    setPreview(URL.createObjectURL(uploadFile));
     setError(null);
     setResults([]);
-    await searchVisual(f);
+    await searchVisual(uploadFile);
   };
 
   const searchVisual = async (f: File) => {
@@ -166,7 +202,15 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
                 gap: "1rem"
               }}
             >
-              <input ref={inputRef} type="file" accept="image/*" onChange={handleChange} style={{ display: "none" }} />
+              <input ref={inputRef} type="file" accept="image/*,.heic,.heif" onChange={handleChange} style={{ display: "none" }} />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleChange}
+                style={{ display: "none" }}
+              />
               
               {preview ? (
                 <>
@@ -191,6 +235,31 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
                     <p style={{ color: "var(--fg-muted)", fontSize: "0.9rem" }}>
                       Drag & drop a photo, or click to browse
                     </p>
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openCamera();
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.4rem",
+                          padding: "0.45rem 0.9rem",
+                          borderRadius: "999px",
+                          border: "1px solid rgba(155,89,182,0.25)",
+                          background: "rgba(155,89,182,0.08)",
+                          color: "#7a3ea1",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Camera size={16} />
+                        Use camera
+                      </button>
+                    </div>
                   </div>
                 </>
               )}

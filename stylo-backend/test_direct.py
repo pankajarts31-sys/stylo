@@ -1,8 +1,13 @@
-import os
-import json
-from app.services.shopping import search_fashion_items
+from app.schemas.chat import ChatMessage
+from app.services.stylist import stream_stylist
 
-print("Directly calling search_fashion_items...")
-results = search_fashion_items("zara jacket", max_results=2)
-print("Results returned:", len(results))
-print(json.dumps(results, indent=2))
+history = [
+    ChatMessage(role="user", content="hi"),
+    ChatMessage(role="model", content="hello")
+]
+
+try:
+    for chunk in stream_stylist(history, "what should I wear?", "men"):
+        print("CHUNK:", chunk)
+except Exception as e:
+    print("ERROR:", type(e), e)

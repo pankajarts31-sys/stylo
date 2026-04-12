@@ -6,6 +6,7 @@ import { Send, Sparkles, RotateCcw, Mic, Camera } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import VisualSearch from "./VisualSearch";
 import { useGender, type Gender } from "@/context/GenderContext";
+import { getApiBase } from "@/lib/api";
 
 interface SpeechRecognitionResultEntry { transcript: string }
 interface SpeechRecognitionResult {
@@ -24,7 +25,7 @@ export interface Message {
   streaming?: boolean;
 }
 
-const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BACKEND = getApiBase();
 
 const WELCOME_MSG: Record<Gender, string> = {
   women:

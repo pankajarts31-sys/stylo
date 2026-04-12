@@ -6,8 +6,9 @@ import { Bookmark, Sparkles, ExternalLink, Trash2 } from "lucide-react";
 import Masonry from "react-masonry-css";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { getApiBase } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API = getApiBase();
 
 // Define the interface matching the backend Pydantic model response
 interface SavedItem {
