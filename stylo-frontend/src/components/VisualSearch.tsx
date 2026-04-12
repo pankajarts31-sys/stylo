@@ -158,7 +158,14 @@ export default function VisualSearch({ onClose, onResults }: VisualSearchProps) 
         body: formData,
       });
 
-      const data = await res.json();
+      // Safely parse response — backend or proxy may return non-JSON (e.g. HTML error page)
+      let data;
+      const text = await res.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(res.ok ? "Invalid response from server." : text.slice(0, 120));
+      }
       if (!res.ok) throw new Error(data.detail ?? "Visual search failed.");
 
       if (onResults && data.matches?.length > 0) {

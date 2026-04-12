@@ -27,14 +27,9 @@ async def visual_search(file: UploadFile = File(...)) -> dict:
     Upload an image -> get top-15 fashion products matching from Google Shopping.
     Powered by Google Gemini 2.5 Flash + SerpApi.
     """
-    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
-    content_type = (file.content_type or "").lower()
-    if content_type not in allowed_types:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported file type '{content_type}'. Upload a JPEG, PNG, or WebP image.",
-        )
-
+    # The frontend already converts all uploads to JPEG before sending,
+    # so we skip strict MIME checks here. Mobile cameras and browsers
+    # often send unpredictable content types (e.g., "application/octet-stream").
     image_bytes = await file.read()
     if len(image_bytes) > MAX_FILE_SIZE:
         raise HTTPException(
