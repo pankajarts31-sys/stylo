@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/feed", label: "Trending" },
   { href: "/deals", label: "Deals" },
   { href: "/saved", label: "Saved" },
+  { href: "/collab", label: "Collab" },
 ];
 
 export default function Navbar() {

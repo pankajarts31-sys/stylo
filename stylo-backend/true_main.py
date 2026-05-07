@@ -31,6 +31,7 @@ from app.api.visual_search import router as visual_search_router
 from app.api.search import router as search_router
 from app.api.saved import router as saved_router
 from app.api.deals import router as deals_router
+from app.api.collab import router as collab_router
 from app.core.config import get_settings
 from app.core.database import engine, Base
 
@@ -43,6 +44,7 @@ async def lifespan(app: FastAPI):
     # PostgreSQL / SQLite tables
     try:
         from app.models.saved_item import SavedItem  # noqa: F401
+        from app.models.collaboration import Collaboration  # noqa: F401
         Base.metadata.create_all(bind=engine)
     except Exception:
         logger.critical(
@@ -74,6 +76,7 @@ app.include_router(visual_search_router)
 app.include_router(search_router)
 app.include_router(saved_router)
 app.include_router(deals_router)
+app.include_router(collab_router)
 
 
 @app.get("/health")
